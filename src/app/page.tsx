@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FinancialProvider, useFinance } from "@/lib/store";
+import { FinancialProvider, useFinance, Transaction } from "@/lib/store";
 import { Onboarding } from "@/components/dashboard/Onboarding";
 import { BalanceGrid } from "@/components/dashboard/BalanceGrid";
 import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
@@ -10,9 +10,10 @@ import { AISpendingAdvisor } from "@/components/dashboard/AISpendingAdvisor";
 import { TransactionModal } from "@/components/dashboard/TransactionModal";
 import { ReminderAlert } from "@/components/dashboard/ReminderAlert";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { LayoutDashboard, ReceiptText, BarChart3, Settings, ShieldCheck, LogOut, Search, Filter } from "lucide-react";
+import { LayoutDashboard, ReceiptText, BarChart3, Settings, ShieldCheck, LogOut, Search, Filter, Download, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 
 type View = "dashboard" | "transactions" | "reports" | "settings";
@@ -22,6 +23,17 @@ function TransactionsView() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [ledgerFilter, setLedgerFilter] = useState<string>("all");
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Transaction; direction: 'asc' | 'desc' }>({
+    key: 'date',
+    direction: 'desc'
+  });
+
+  const handleSort = (key: keyof Transaction) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
+    }));
+  };
 
   const filteredTransactions = transactions.filter(t => {
     const matchesSearch = t.description.toLowerCase().includes(search.toLowerCase()) ||
@@ -32,13 +44,74 @@ function TransactionsView() {
     const matchesLedger = ledgerFilter === "all" || t.ledgerType === ledgerFilter;
     
     return matchesSearch && matchesType && matchesLedger;
-  }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }).sort((a, b) => {
+    const aValue = a[sortConfig.key];
+    const bValue = b[sortConfig.key];
+
+    if (aValue === undefined || bValue === undefined) return 0;
+
+    if (sortConfig.key === 'date') {
+      return sortConfig.direction === 'asc' 
+        ? new Date(a.date).getTime() - new Date(b.date).getTime()
+        : new Date(b.date).getTime() - new Date(a.date).getTime();
+    }
+
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+
+    return sortConfig.direction === 'asc'
+      ? String(aValue).localeCompare(String(bValue))
+      : String(bValue).localeCompare(String(aValue));
+  });
+
+  const exportToCSV = () => {
+    const headers = ["Date", "Description", "Category", "Method", "Type", "Ledger", "Recipient", "Amount"];
+    const rows = filteredTransactions.map(t => [
+      format(new Date(t.date), 'yyyy-MM-dd HH:mm'),
+      t.description,
+      t.category,
+      t.method,
+      t.type,
+      t.ledgerType,
+      t.recipient || "",
+      t.amount
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `saldo_transactions_${format(new Date(), 'yyyyMMdd')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const SortIcon = ({ column }: { column: keyof Transaction }) => {
+    if (sortConfig.key !== column) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-50" />;
+    return sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3 ml-1 text-primary" /> : <ArrowDown className="h-3 w-3 ml-1 text-primary" />;
+  };
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <header>
-        <p className="font-headline text-primary uppercase tracking-widest text-xs mb-1">Ledger Management</p>
-        <h2 className="text-3xl font-headline font-bold text-white">All Transactions</h2>
+      <header className="flex items-end justify-between">
+        <div>
+          <p className="font-headline text-primary uppercase tracking-widest text-xs mb-1">Ledger Management</p>
+          <h2 className="text-3xl font-headline font-bold text-white">All Transactions</h2>
+        </div>
+        <Button 
+          variant="outline" 
+          onClick={exportToCSV}
+          className="bg-secondary/20 border-white/10 hover:bg-secondary/40 text-xs font-headline uppercase tracking-widest h-10"
+        >
+          <Download className="h-4 w-4 mr-2" /> Export to Excel (CSV)
+        </Button>
       </header>
 
       <div className="flex flex-col lg:flex-row gap-4 items-center justify-between bg-secondary/20 p-4 rounded-2xl border border-white/5">
@@ -85,11 +158,36 @@ function TransactionsView() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-white/5">
-                <th className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground">Date</th>
-                <th className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground">Description</th>
-                <th className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground">Category</th>
-                <th className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground">Method</th>
-                <th className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground text-right">Amount</th>
+                <th 
+                  className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-white transition-colors"
+                  onClick={() => handleSort('date')}
+                >
+                  <div className="flex items-center">Date <SortIcon column="date" /></div>
+                </th>
+                <th 
+                  className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-white transition-colors"
+                  onClick={() => handleSort('description')}
+                >
+                  <div className="flex items-center">Description <SortIcon column="description" /></div>
+                </th>
+                <th 
+                  className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-white transition-colors"
+                  onClick={() => handleSort('category')}
+                >
+                  <div className="flex items-center">Category <SortIcon column="category" /></div>
+                </th>
+                <th 
+                  className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-white transition-colors"
+                  onClick={() => handleSort('method')}
+                >
+                  <div className="flex items-center">Method <SortIcon column="method" /></div>
+                </th>
+                <th 
+                  className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground text-right cursor-pointer hover:text-white transition-colors"
+                  onClick={() => handleSort('amount')}
+                >
+                  <div className="flex items-center justify-end">Amount <SortIcon column="amount" /></div>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
