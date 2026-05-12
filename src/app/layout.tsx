@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from '@/firebase';
 import { FinancialProvider } from '@/lib/store';
 import { InstallPrompt } from '@/components/dashboard/InstallPrompt';
+import { ServiceWorkerRegistration } from '@/components/dashboard/ServiceWorkerRegistration';
 
 export const metadata: Metadata = {
   title: 'Saldo - Smart Financial Tracking',
@@ -42,6 +43,7 @@ export default function RootLayout({
       <body className="font-body antialiased selection:bg-primary selection:text-primary-foreground overflow-x-hidden">
         <FirebaseClientProvider>
           <FinancialProvider>
+            <ServiceWorkerRegistration />
             {children}
             <InstallPrompt />
             <Toaster />

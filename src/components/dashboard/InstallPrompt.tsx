@@ -11,9 +11,9 @@ export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
-    // Check standalone mode first
+    // Check if already in standalone mode
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
-      || (window.navigator as any).standalone;
+      || (window.navigator as any).standalone === true;
     
     if (isStandalone) return;
 
@@ -25,7 +25,7 @@ export function InstallPrompt() {
     if (isIOS) setPlatform("ios");
     else if (isAndroid) setPlatform("android");
 
-    // Handle dismissal check
+    // Handle dismissal check (show again after 24 hours if dismissed)
     const lastDismissed = localStorage.getItem("install-prompt-dismissed");
     if (lastDismissed) {
       const oneDay = 24 * 60 * 60 * 1000;
@@ -34,7 +34,7 @@ export function InstallPrompt() {
       }
     }
 
-    // Android/Chrome beforeinstallprompt event
+    // Capture the beforeinstallprompt event for Android/Chrome
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -43,13 +43,17 @@ export function InstallPrompt() {
 
     window.addEventListener('beforeinstallprompt', handler);
 
-    // iOS doesn't have an event, so show manually after a short delay
-    if (isIOS) {
-      const timer = setTimeout(() => setShowPrompt(true), 3000);
-      return () => clearTimeout(timer);
-    }
+    // Show fallback prompt for iOS or if browser doesn't support the event but is mobile
+    const timer = setTimeout(() => {
+      if (isIOS || isAndroid) {
+        setShowPrompt(true);
+      }
+    }, 5000);
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      clearTimeout(timer);
+    };
   }, []);
 
   const handleInstallClick = async () => {
@@ -102,9 +106,9 @@ export function InstallPrompt() {
             </p>
           </div>
         ) : (
-          <div className="text-center py-1">
-            <p className="text-[10px] text-muted-foreground italic">
-              Open your browser menu and select "Install" or "Add to Home Screen" to use Saldo as an app.
+          <div className="bg-secondary/20 rounded-xl p-3 border border-white/5">
+            <p className="text-[10px] text-muted-foreground text-center">
+              Open your browser menu and select <span className="text-white font-bold">"Install"</span> or <span className="text-white font-bold">"Add to Home Screen"</span> to use Saldo as an app.
             </p>
           </div>
         )}
