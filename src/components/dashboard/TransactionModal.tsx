@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -8,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFinance, PaymentMethod, TransactionType, LedgerType } from "@/lib/store";
 import { Plus, CreditCard, Banknote, Globe, User, Landmark, HelpCircle, CalendarIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const PAYMENT_APPS = [
   "Google Pay",
@@ -21,6 +21,7 @@ const PAYMENT_APPS = [
 
 export function TransactionModal() {
   const { accounts, addTransaction } = useFinance();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<TransactionType>("expense");
   const [method, setMethod] = useState<PaymentMethod>("online");
@@ -37,7 +38,19 @@ export function TransactionModal() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || !description || !accountId) return;
+    const numAmount = parseFloat(amount);
+    if (!numAmount || !description || !accountId) return;
+
+    // Balance validation
+    const account = accounts.find(a => a.id === accountId);
+    if (type === 'expense' && account && numAmount > account.balance) {
+      toast({
+        variant: "destructive",
+        title: "Insufficient Balance",
+        description: `You cannot spend $${numAmount.toFixed(2)} from ${account.name} because it only has $${account.balance.toFixed(2)} available.`,
+      });
+      return;
+    }
 
     // Use the selected date. We append a current time component to preserve some relative ordering if logged on same day
     const selectedDate = new Date(date);
@@ -47,7 +60,7 @@ export function TransactionModal() {
     addTransaction({
       date: selectedDate.toISOString(),
       description,
-      amount: parseFloat(amount),
+      amount: numAmount,
       type,
       category: type === 'income' ? 'Salary' : category,
       method,
@@ -139,7 +152,7 @@ export function TransactionModal() {
                 onChange={(e) => setAccountId(e.target.value)}
               >
                 {accounts.map(acc => (
-                  <option key={acc.id} value={acc.id}>{acc.name}</option>
+                  <option key={acc.id} value={acc.id}>{acc.name} (${acc.balance.toFixed(2)})</option>
                 ))}
               </select>
             </div>
