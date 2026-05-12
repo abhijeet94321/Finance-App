@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useMemo } from "react";
@@ -15,7 +16,8 @@ import {
   query, 
   orderBy,
   increment,
-  updateDoc
+  updateDoc,
+  getDocs
 } from "firebase/firestore";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -54,7 +56,7 @@ interface FinancialContextType {
   addTransaction: (tx: Omit<Transaction, "id">) => void;
   updateAccountBalance: (accountId: string, newBalance: number) => void;
   onboard: (initialAccounts: Account[]) => void;
-  resetData: () => void;
+  resetData: () => Promise<void>;
 }
 
 const FinancialContext = createContext<FinancialContextType | undefined>(undefined);
@@ -143,8 +145,22 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const resetData = () => {
-    console.warn("Reset data requested. For safety, this action is restricted in production.");
+  const resetData = async () => {
+    if (!firestore || !user) return;
+
+    const accs = await getDocs(collection(firestore, 'users', user.uid, 'accounts'));
+    const txs = await getDocs(collection(firestore, 'users', user.uid, 'transactions'));
+    
+    const batch = writeBatch(firestore);
+    accs.docs.forEach(d => batch.delete(d.ref));
+    txs.docs.forEach(d => batch.delete(d.ref));
+
+    batch.commit().catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: `/users/${user.uid}`,
+        operation: 'write'
+      }));
+    });
   };
 
   const contextValue = useMemo(() => ({

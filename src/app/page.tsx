@@ -12,15 +12,115 @@ import { ReminderAlert } from "@/components/dashboard/ReminderAlert";
 import { ReportsView } from "@/components/dashboard/ReportsView";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
-import { LayoutDashboard, ReceiptText, BarChart3, Settings, ShieldCheck, LogOut, Search, Filter, Download, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { LayoutDashboard, ReceiptText, BarChart3, Settings, ShieldCheck, LogOut, Search, Filter, Download, ArrowUpDown, ArrowUp, ArrowDown, Trash2, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 type View = "dashboard" | "transactions" | "reports" | "settings";
+
+function SettingsView() {
+  const { resetData } = useFinance();
+  const { toast } = useToast();
+  const [resetting, setResetting] = useState(false);
+
+  const handleReset = async () => {
+    setResetting(true);
+    try {
+      await resetData();
+      toast({
+        title: "Data Reset Complete",
+        description: "All accounts and transactions have been wiped. Starting fresh.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Reset Failed",
+        description: "Could not wipe your data. Please try again.",
+      });
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-10 animate-fade-in max-w-2xl">
+      <header>
+        <p className="font-headline text-primary uppercase tracking-widest text-xs mb-1">Preferences & Privacy</p>
+        <h2 className="text-3xl font-headline font-bold text-white">Security & Settings</h2>
+      </header>
+
+      <div className="glass-card rounded-[2rem] p-8 border-destructive/20 bg-destructive/5">
+        <div className="flex items-start gap-4 mb-6">
+          <div className="bg-destructive/10 p-3 rounded-2xl">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+          </div>
+          <div>
+            <h3 className="font-headline text-xl text-white mb-2">Reset All Data</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              This action will permanently delete all your accounts, starting balances, and historical transactions. 
+              You will be returned to the onboarding screen to set up your baseline wealth again.
+            </p>
+          </div>
+        </div>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="w-full md:w-fit font-headline font-bold h-12 px-8 rounded-xl shadow-lg shadow-destructive/20">
+              <Trash2 className="h-4 w-4 mr-2" /> Reset Everything
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="glass-card border-destructive/30">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-headline text-white text-xl">Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                This action cannot be undone. All your penny-perfect records will be lost forever.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-secondary/50 border-white/10 hover:bg-secondary">Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleReset}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {resetting ? "Wiping..." : "Yes, Reset My Data"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+
+      <div className="glass-card rounded-[2rem] p-8 border-white/5 space-y-6">
+        <h3 className="font-headline text-xl text-white">Application Info</h3>
+        <div className="grid gap-4">
+          <div className="flex justify-between items-center py-3 border-b border-white/5">
+            <span className="text-sm text-muted-foreground">Version</span>
+            <span className="text-sm font-headline text-white">0.1.0-beta</span>
+          </div>
+          <div className="flex justify-between items-center py-3 border-b border-white/5">
+            <span className="text-sm text-muted-foreground">Ledger Sync</span>
+            <span className="text-sm font-headline text-emerald-400">Encrypted & Secure</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function TransactionsView() {
   const { transactions } = useFinance();
@@ -302,6 +402,8 @@ function SaldoContent() {
         return <TransactionsView />;
       case "reports":
         return <ReportsView />;
+      case "settings":
+        return <SettingsView />;
       default:
         return <div className="p-20 text-center text-muted-foreground">Module coming soon...</div>;
     }
