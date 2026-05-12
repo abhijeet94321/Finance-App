@@ -31,12 +31,10 @@ export function TransactionModal() {
   const [accountId, setAccountId] = useState(accounts[0]?.id || "");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   
-  // Conditional states
   const [appName, setAppName] = useState("");
   const [ledgerType, setLedgerType] = useState<LedgerType>("personal");
   const [recipient, setRecipient] = useState("");
 
-  // Sync method with account type
   useEffect(() => {
     const account = accounts.find(a => a.id === accountId);
     if (account) {
@@ -53,7 +51,6 @@ export function TransactionModal() {
     const numAmount = parseFloat(amount);
     if (!numAmount || !description || !accountId) return;
 
-    // Balance validation
     const account = accounts.find(a => a.id === accountId);
     if (type === 'expense' && account && numAmount > account.balance) {
       toast({
@@ -64,7 +61,6 @@ export function TransactionModal() {
       return;
     }
 
-    // Use the selected date
     const selectedDate = new Date(date);
     const now = new Date();
     selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
@@ -99,7 +95,10 @@ export function TransactionModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-2xl bg-accent hover:bg-accent/90 animate-bounce">
+        <Button 
+          className="fixed bottom-24 right-6 md:bottom-10 md:right-10 h-16 w-16 rounded-full shadow-[0_10px_40px_rgba(158,158,255,0.4)] bg-accent hover:bg-accent/90 transition-all active:scale-95 z-[90]"
+          aria-label="Add Transaction"
+        >
           <Plus className="h-8 w-8 text-white" />
         </Button>
       </DialogTrigger>
@@ -157,7 +156,7 @@ export function TransactionModal() {
 
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-headline uppercase text-muted-foreground">Account (Autodetects Method)</Label>
+              <Label className="text-[10px] font-headline uppercase text-muted-foreground">Account</Label>
               <select
                 className="w-full h-10 px-3 rounded-md bg-background/50 border border-input text-sm"
                 value={accountId}
@@ -165,7 +164,7 @@ export function TransactionModal() {
               >
                 {accounts.map(acc => (
                   <option key={acc.id} value={acc.id}>
-                    {acc.name} (₹{acc.balance.toLocaleString('en-IN')}) — {acc.type === 'cash' ? 'Cash' : 'Online'}
+                    {acc.name} (₹{acc.balance.toLocaleString('en-IN')})
                   </option>
                 ))}
               </select>
@@ -192,7 +191,7 @@ export function TransactionModal() {
               )}
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-headline uppercase text-muted-foreground">Transaction Type</Label>
+                <Label className="text-[10px] font-headline uppercase text-muted-foreground">Ledger</Label>
                 <div className="grid grid-cols-3 gap-2">
                   <Button
                     type="button"
@@ -201,7 +200,7 @@ export function TransactionModal() {
                     className="text-[10px] uppercase font-headline h-10"
                     onClick={() => setLedgerType("personal")}
                   >
-                    <User className="h-3 w-3 mr-1" /> Personal
+                    <User className="h-3 w-3 mr-1" /> Pers.
                   </Button>
                   <Button
                     type="button"
@@ -210,7 +209,7 @@ export function TransactionModal() {
                     className="text-[10px] uppercase font-headline h-10"
                     onClick={() => setLedgerType("aashram")}
                   >
-                    < Landmark className="h-3 w-3 mr-1" /> Aashram
+                    < Landmark className="h-3 w-3 mr-1" /> Aash.
                   </Button>
                   <Button
                     type="button"
@@ -219,7 +218,7 @@ export function TransactionModal() {
                     className="text-[10px] uppercase font-headline h-10"
                     onClick={() => setLedgerType("others")}
                   >
-                    <HelpCircle className="h-3 w-3 mr-1" /> Others
+                    <HelpCircle className="h-3 w-3 mr-1" /> Oth.
                   </Button>
                 </div>
               </div>
@@ -263,7 +262,7 @@ export function TransactionModal() {
             />
           </div>
 
-          <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-white font-headline h-12 text-lg">
+          <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-white font-headline h-12 text-lg shadow-lg shadow-accent/20">
             Record {type === 'expense' ? 'Expense' : 'Income'}
           </Button>
         </form>
