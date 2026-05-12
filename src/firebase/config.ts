@@ -1,11 +1,10 @@
-
 /**
  * FIREBASE CONFIGURATION
  * 
  * IMPORTANT FOR VERCEL HOSTING:
  * 1. Go to Firebase Console > Authentication > Settings > Authorized Domains
  * 2. Add your Vercel deployment URL (e.g., your-app-name.vercel.app)
- * 3. Also add the domain you are currently using in the studio.
+ * 3. This is required for sign-in to function in production.
  */
 
 export const firebaseConfig = {
