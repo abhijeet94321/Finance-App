@@ -17,7 +17,8 @@ import {
   orderBy,
   increment,
   updateDoc,
-  getDocs
+  getDocs,
+  limit
 } from "firebase/firestore";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -72,11 +73,13 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
   const { data: accounts, loading: accountsLoading } = useCollection<Account>(accountsQuery);
 
+  // Optimize: Limit initial transactions to 50 for faster sync/performance
   const transactionsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(
       collection(firestore, 'users', user.uid, 'transactions'), 
-      orderBy('date', 'desc')
+      orderBy('date', 'desc'),
+      limit(50)
     );
   }, [firestore, user]);
 
@@ -155,7 +158,7 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     accs.docs.forEach(d => batch.delete(d.ref));
     txs.docs.forEach(d => batch.delete(d.ref));
 
-    batch.commit().catch(async (e) => {
+    return batch.commit().catch(async (e) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: `/users/${user.uid}`,
         operation: 'write'
@@ -163,16 +166,22 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  // Performance Optimization: If we have accounts in cache, we're not "loading" 
+  // even if a network sync is happening in background.
+  const isSyncingButReady = useMemo(() => {
+    return (accounts && accounts.length > 0) && (accountsLoading || transactionsLoading);
+  }, [accounts, accountsLoading, transactionsLoading]);
+
   const contextValue = useMemo(() => ({
     accounts: accounts || [],
     transactions: transactions || [],
     onboarded: (accounts && accounts.length > 0) || false,
-    loading: accountsLoading || transactionsLoading,
+    loading: isSyncingButReady ? false : (accountsLoading || transactionsLoading),
     addTransaction,
     updateAccountBalance,
     onboard,
     resetData,
-  }), [accounts, transactions, accountsLoading, transactionsLoading]);
+  }), [accounts, transactions, accountsLoading, transactionsLoading, isSyncingButReady]);
 
   return React.createElement(
     FinancialContext.Provider,
