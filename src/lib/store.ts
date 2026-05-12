@@ -1,9 +1,11 @@
+
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 export type TransactionType = "income" | "expense";
 export type PaymentMethod = "online" | "cash";
+export type LedgerType = "personal" | "aashram" | "others";
 
 export interface Transaction {
   id: string;
@@ -14,6 +16,9 @@ export interface Transaction {
   category: string;
   method: PaymentMethod;
   accountId: string;
+  appName?: string;
+  ledgerType: LedgerType;
+  recipient?: string;
 }
 
 export interface Account {

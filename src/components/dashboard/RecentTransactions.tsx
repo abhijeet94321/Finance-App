@@ -1,8 +1,9 @@
+
 "use client";
 
 import React from "react";
 import { useFinance } from "@/lib/store";
-import { Globe, Banknote, ShoppingBag, Utensils, Home, Car, DollarSign, Package, TrendingUp } from "lucide-react";
+import { Globe, Banknote, ShoppingBag, Utensils, Home, Car, DollarSign, Package, TrendingUp, User, Landmark, HelpCircle } from "lucide-react";
 import { format } from "date-fns";
 
 export function RecentTransactions() {
@@ -17,6 +18,15 @@ export function RecentTransactions() {
       case 'bills': return <DollarSign className="h-4 w-4" />;
       case 'salary': return <TrendingUp className="h-4 w-4" />;
       default: return <Package className="h-4 w-4" />;
+    }
+  };
+
+  const getLedgerIcon = (type: string) => {
+    switch (type) {
+      case 'personal': return <User className="h-3 w-3" />;
+      case 'aashram': return <Landmark className="h-3 w-3" />;
+      case 'others': return <HelpCircle className="h-3 w-3" />;
+      default: return null;
     }
   };
 
@@ -43,13 +53,20 @@ export function RecentTransactions() {
                   <div className="font-medium text-sm text-white flex items-center gap-2">
                     {tx.description}
                     {tx.method === 'online' ? (
-                      <Globe className="h-3 w-3 text-muted-foreground opacity-50 group-hover:opacity-100" />
+                      <div className="flex items-center gap-1 text-[10px] bg-primary/10 text-primary px-1.5 rounded">
+                        <Globe className="h-3 w-3" />
+                        {tx.appName || "Online"}
+                      </div>
                     ) : (
-                      <Banknote className="h-3 w-3 text-muted-foreground opacity-50 group-hover:opacity-100" />
+                      <Banknote className="h-3 w-3 text-muted-foreground opacity-50" />
                     )}
                   </div>
-                  <div className="text-[10px] text-muted-foreground uppercase font-headline tracking-wider">
-                    {format(new Date(tx.date), 'MMM dd')} • {tx.category} • {tx.method}
+                  <div className="text-[10px] text-muted-foreground uppercase font-headline tracking-wider flex items-center gap-2">
+                    {format(new Date(tx.date), 'MMM dd')} • {tx.category} • 
+                    <span className="flex items-center gap-1">
+                      {getLedgerIcon(tx.ledgerType)}
+                      {tx.ledgerType === 'others' ? tx.recipient : tx.ledgerType}
+                    </span>
                   </div>
                 </div>
               </div>

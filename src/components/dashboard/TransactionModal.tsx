@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -5,9 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useFinance, PaymentMethod, TransactionType } from "@/lib/store";
-import { Plus, CreditCard, Banknote, Globe, ShoppingBag } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useFinance, PaymentMethod, TransactionType, LedgerType } from "@/lib/store";
+import { Plus, CreditCard, Banknote, Globe, User, Landmark, HelpCircle } from "lucide-react";
 
 export function TransactionModal() {
   const { accounts, addTransaction } = useFinance();
@@ -18,6 +18,11 @@ export function TransactionModal() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("General");
   const [accountId, setAccountId] = useState(accounts[0]?.id || "");
+  
+  // New conditional states
+  const [appName, setAppName] = useState("");
+  const [ledgerType, setLedgerType] = useState<LedgerType>("personal");
+  const [recipient, setRecipient] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +36,9 @@ export function TransactionModal() {
       category,
       method,
       accountId,
+      appName: method === 'online' ? appName : undefined,
+      ledgerType,
+      recipient: ledgerType === 'others' ? recipient : undefined,
     });
 
     setOpen(false);
@@ -41,6 +49,9 @@ export function TransactionModal() {
     setAmount("");
     setDescription("");
     setCategory("General");
+    setAppName("");
+    setLedgerType("personal");
+    setRecipient("");
   };
 
   return (
@@ -50,7 +61,7 @@ export function TransactionModal() {
           <Plus className="h-8 w-8 text-white" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="glass-card border-primary/20 sm:max-w-[425px]">
+      <DialogContent className="glass-card border-primary/20 sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl text-primary">Log Transaction</DialogTitle>
         </DialogHeader>
@@ -127,6 +138,67 @@ export function TransactionModal() {
               </div>
             </div>
           </div>
+
+          {/* Conditional App Name field */}
+          {method === 'online' && (
+            <div className="space-y-2 animate-fade-in">
+              <Label className="text-[10px] font-headline uppercase text-muted-foreground">App Name</Label>
+              <Input
+                placeholder="e.g. Google Pay, PhonePe, Kiwi"
+                className="bg-background/50"
+                value={appName}
+                onChange={(e) => setAppName(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label className="text-[10px] font-headline uppercase text-muted-foreground">Transaction Type</Label>
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={ledgerType === "personal" ? "secondary" : "ghost"}
+                className="text-[10px] uppercase font-headline h-10"
+                onClick={() => setLedgerType("personal")}
+              >
+                <User className="h-3 w-3 mr-1" /> Personal
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={ledgerType === "aashram" ? "secondary" : "ghost"}
+                className="text-[10px] uppercase font-headline h-10"
+                onClick={() => setLedgerType("aashram")}
+              >
+                <Landmark className="h-3 w-3 mr-1" /> Aashram
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={ledgerType === "others" ? "secondary" : "ghost"}
+                className="text-[10px] uppercase font-headline h-10"
+                onClick={() => setLedgerType("others")}
+              >
+                <HelpCircle className="h-3 w-3 mr-1" /> Others
+              </Button>
+            </div>
+          </div>
+
+          {/* Conditional Recipient field */}
+          {ledgerType === 'others' && (
+            <div className="space-y-2 animate-fade-in">
+              <Label className="text-[10px] font-headline uppercase text-muted-foreground">Recipient Name</Label>
+              <Input
+                placeholder="Who are you paying?"
+                className="bg-background/50"
+                value={recipient}
+                onChange={(e) => setRecipient(e.target.value)}
+                required
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label className="text-[10px] font-headline uppercase text-muted-foreground">Description</Label>
