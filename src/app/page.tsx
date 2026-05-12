@@ -8,12 +8,11 @@ import { BalanceGrid } from "@/components/dashboard/BalanceGrid";
 import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
 import { AISpendingAdvisor } from "@/components/dashboard/AISpendingAdvisor";
 import { TransactionModal } from "@/components/dashboard/TransactionModal";
-import { ReminderAlert } from "@/components/dashboard/ReminderAlert";
 import { ReportsView } from "@/components/dashboard/ReportsView";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { MobileNav } from "@/components/dashboard/MobileNav";
-import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
-import { LayoutDashboard, ReceiptText, BarChart3, Settings, ShieldCheck, LogOut, Search, Filter, Download, ArrowUpDown, ArrowUp, ArrowDown, Trash2, AlertTriangle } from "lucide-react";
+import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import { LayoutDashboard, ReceiptText, BarChart3, Settings, ShieldCheck, LogOut, Search, Trash2, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -163,11 +162,6 @@ function TransactionsView() {
       ? String(aValue).localeCompare(String(bValue))
       : String(bValue).localeCompare(String(aValue));
   });
-
-  const SortIcon = ({ column }: { column: keyof Transaction }) => {
-    if (sortConfig.key !== column) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-50" />;
-    return sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3 ml-1 text-primary" /> : <ArrowDown className="h-3 w-3 ml-1 text-primary" />;
-  };
 
   return (
     <div className="space-y-8 animate-fade-in pb-24 md:pb-0">
@@ -342,7 +336,6 @@ function SaldoContent() {
         </Sidebar>
 
         <main className="flex-1 p-6 md:p-10 lg:px-16 space-y-6 md:space-y-10 max-w-7xl mx-auto w-full relative">
-          <ReminderAlert />
           {renderView()}
           <TransactionModal />
         </main>
