@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -75,7 +74,7 @@ export function RecentTransactions() {
                 </div>
               </div>
               <div className={`font-headline font-bold ${tx.type === 'income' ? 'text-emerald-400' : 'text-white'}`}>
-                {tx.type === 'income' ? '+' : '-'}${tx.amount.toFixed(2)}
+                {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             </div>
           ))

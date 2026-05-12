@@ -29,7 +29,7 @@ export function BalanceGrid() {
           <h2 className="text-[10px] font-headline uppercase tracking-[0.2em] text-primary mb-2">Total Combined Wealth</h2>
           <div className="flex items-baseline gap-2">
             <span className="text-5xl md:text-6xl font-headline font-bold text-white tracking-tight">
-              ${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹{totalBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="mt-6 flex gap-6">
@@ -39,7 +39,7 @@ export function BalanceGrid() {
               </div>
               <div>
                 <p className="text-[10px] font-headline uppercase text-muted-foreground">Monthly In</p>
-                <p className="font-headline font-semibold text-emerald-400">+$2,450.00</p>
+                <p className="font-headline font-semibold text-emerald-400">+₹{transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0).toLocaleString('en-IN')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -48,7 +48,7 @@ export function BalanceGrid() {
               </div>
               <div>
                 <p className="text-[10px] font-headline uppercase text-muted-foreground">Monthly Out</p>
-                <p className="font-headline font-semibold text-rose-400">-$1,280.45</p>
+                <p className="font-headline font-semibold text-rose-400">-₹{transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0).toLocaleString('en-IN')}</p>
               </div>
             </div>
           </div>
@@ -67,7 +67,7 @@ export function BalanceGrid() {
             <CardContent>
               <div className="text-sm font-medium text-muted-foreground mb-1">{acc.name}</div>
               <div className="text-2xl font-headline font-semibold text-white">
-                ${acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₹{acc.balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             </CardContent>
           </Card>

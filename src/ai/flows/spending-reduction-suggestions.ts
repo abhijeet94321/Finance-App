@@ -21,14 +21,14 @@ const TransactionSchema = z.object({
 const SpendingReductionSuggestionsInputSchema = z.object({
   transactions: z.array(TransactionSchema).describe('An array of historical financial transactions.'),
   monthlyIncome: z.number().optional().describe('The user\'s optional monthly income for context.'),
-  financialGoals: z.string().optional().describe('The user\'s optional financial goals (e.g., "save $500/month for a down payment").'),
+  financialGoals: z.string().optional().describe('The user\'s optional financial goals (e.g., "save ₹5000/month for a down payment").'),
 });
 export type SpendingReductionSuggestionsInput = z.infer<typeof SpendingReductionSuggestionsInputSchema>;
 
 const SuggestionSchema = z.object({
   category: z.string().describe('The spending category the recommendation applies to.'),
   recommendation: z.string().describe('An actionable recommendation for reducing expenses in the specified category.'),
-  potentialSavings: z.string().describe('An estimate of potential monthly savings from implementing this recommendation (e.g., "$50/month", "10% of current spend").'),
+  potentialSavings: z.string().describe('An estimate of potential monthly savings from implementing this recommendation (e.g., "₹500/month", "10% of current spend").'),
   reasoning: z.string().describe('The reasoning behind why this recommendation is being made based on the provided data.'),
 });
 
@@ -47,26 +47,26 @@ const spendingReductionPrompt = ai.definePrompt({
   name: 'spendingReductionPrompt',
   input: { schema: SpendingReductionSuggestionsInputSchema },
   output: { schema: SpendingReductionSuggestionsOutputSchema },
-  prompt: `You are a financial AI advisor named Saldo, dedicated to helping users reduce their expenses.
-Analyze the provided historical spending transactions and, if available, consider the user's monthly income and financial goals.
+  prompt: `You are a financial AI advisor named Saldo, dedicated to helping users reduce their expenses in India.
+Analyze the provided historical spending transactions and, if available, consider the user's monthly income and financial goals. All amounts are in Indian Rupees (INR/₹).
 
 Your task is to provide personalized and actionable recommendations for reducing expenses.
-Each recommendation should include the spending category it applies to, a clear action, an estimate of potential monthly savings, and the reasoning based on the provided data.
+Each recommendation should include the spending category it applies to, a clear action, an estimate of potential monthly savings in Rupees, and the reasoning based on the provided data.
 
 Transactions:
 {{#each transactions}}
-  - Date: {{{date}}}, Description: {{{description}}}, Amount: {{{amount}}}, Type: {{{type}}}, Category: {{{category}}}
+  - Date: {{{date}}}, Description: {{{description}}}, Amount: ₹{{{amount}}}, Type: {{{type}}}, Category: {{{category}}}
 {{/each}}
 
 {{#if monthlyIncome}}
-Monthly Income: {{{monthlyIncome}}}
+Monthly Income: ₹{{{monthlyIncome}}}
 {{/if}}
 
 {{#if financialGoals}}
 Financial Goals: {{{financialGoals}}}
 {{/if}}
 
-Based on this information, provide a list of spending reduction suggestions. Be specific and actionable.
+Based on this information, provide a list of spending reduction suggestions. Be specific and actionable. Ensure all currency formatting uses the ₹ symbol.
 `,
 });
 

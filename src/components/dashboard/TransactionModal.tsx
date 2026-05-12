@@ -47,12 +47,12 @@ export function TransactionModal() {
       toast({
         variant: "destructive",
         title: "Insufficient Balance",
-        description: `You cannot spend $${numAmount.toFixed(2)} from ${account.name} because it only has $${account.balance.toFixed(2)} available.`,
+        description: `You cannot spend ₹${numAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })} from ${account.name} because it only has ₹${account.balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })} available.`,
       });
       return;
     }
 
-    // Use the selected date. We append a current time component to preserve some relative ordering if logged on same day
+    // Use the selected date
     const selectedDate = new Date(date);
     const now = new Date();
     selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
@@ -129,7 +129,7 @@ export function TransactionModal() {
             <div className="space-y-2">
               <Label className="text-[10px] font-headline uppercase text-muted-foreground">Amount</Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-headline">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-headline">₹</span>
                 <Input
                   type="number"
                   step="0.01"
@@ -152,7 +152,7 @@ export function TransactionModal() {
                 onChange={(e) => setAccountId(e.target.value)}
               >
                 {accounts.map(acc => (
-                  <option key={acc.id} value={acc.id}>{acc.name} (${acc.balance.toFixed(2)})</option>
+                  <option key={acc.id} value={acc.id}>{acc.name} (₹{acc.balance.toLocaleString('en-IN')})</option>
                 ))}
               </select>
             </div>
