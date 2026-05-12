@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -10,7 +9,7 @@ import { AISpendingAdvisor } from "@/components/dashboard/AISpendingAdvisor";
 import { TransactionModal } from "@/components/dashboard/TransactionModal";
 import { ReminderAlert } from "@/components/dashboard/ReminderAlert";
 import { ReportsView } from "@/components/dashboard/ReportsView";
-import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
 import { LayoutDashboard, ReceiptText, BarChart3, Settings, ShieldCheck, LogOut, Search, Filter, Download, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -101,17 +100,17 @@ function TransactionsView() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <header className="flex items-end justify-between">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <p className="font-headline text-primary uppercase tracking-widest text-xs mb-1">Ledger Management</p>
-          <h2 className="text-3xl font-headline font-bold text-white">All Transactions</h2>
+          <h2 className="text-2xl md:text-3xl font-headline font-bold text-white">All Transactions</h2>
         </div>
         <Button 
           variant="outline" 
           onClick={exportToCSV}
-          className="bg-secondary/20 border-white/10 hover:bg-secondary/40 text-xs font-headline uppercase tracking-widest h-10"
+          className="bg-secondary/20 border-white/10 hover:bg-secondary/40 text-[10px] font-headline uppercase tracking-widest h-10 w-fit"
         >
-          <Download className="h-4 w-4 mr-2" /> Export to Excel (CSV)
+          <Download className="h-4 w-4 mr-2" /> Export to CSV
         </Button>
       </header>
 
@@ -126,7 +125,7 @@ function TransactionsView() {
           />
         </div>
         <div className="flex flex-wrap gap-3 w-full lg:w-auto">
-          <div className="w-full sm:w-40">
+          <div className="flex-1 lg:w-40">
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="bg-background/50 border-white/10">
                 <SelectValue placeholder="All Types" />
@@ -138,7 +137,7 @@ function TransactionsView() {
               </SelectContent>
             </Select>
           </div>
-          <div className="w-full sm:w-40">
+          <div className="flex-1 lg:w-40">
             <Select value={ledgerFilter} onValueChange={setLedgerFilter}>
               <SelectTrigger className="bg-background/50 border-white/10">
                 <SelectValue placeholder="All Ledgers" />
@@ -160,31 +159,31 @@ function TransactionsView() {
             <thead>
               <tr className="bg-white/5">
                 <th 
-                  className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-white transition-colors"
+                  className="p-4 md:p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-white transition-colors"
                   onClick={() => handleSort('date')}
                 >
                   <div className="flex items-center">Date <SortIcon column="date" /></div>
                 </th>
                 <th 
-                  className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-white transition-colors"
+                  className="p-4 md:p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-white transition-colors"
                   onClick={() => handleSort('description')}
                 >
                   <div className="flex items-center">Description <SortIcon column="description" /></div>
                 </th>
                 <th 
-                  className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-white transition-colors"
+                  className="p-4 md:p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground hidden sm:table-cell cursor-pointer hover:text-white transition-colors"
                   onClick={() => handleSort('category')}
                 >
                   <div className="flex items-center">Category <SortIcon column="category" /></div>
                 </th>
                 <th 
-                  className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-white transition-colors"
+                  className="p-4 md:p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground hidden md:table-cell cursor-pointer hover:text-white transition-colors"
                   onClick={() => handleSort('method')}
                 >
                   <div className="flex items-center">Method <SortIcon column="method" /></div>
                 </th>
                 <th 
-                  className="p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground text-right cursor-pointer hover:text-white transition-colors"
+                  className="p-4 md:p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground text-right cursor-pointer hover:text-white transition-colors"
                   onClick={() => handleSort('amount')}
                 >
                   <div className="flex items-center justify-end">Amount <SortIcon column="amount" /></div>
@@ -199,26 +198,26 @@ function TransactionsView() {
               ) : (
                 filteredTransactions.map((tx) => (
                   <tr key={tx.id} className="hover:bg-white/5 transition-colors group">
-                    <td className="p-6">
-                      <div className="text-sm text-white">{format(new Date(tx.date), 'MMM dd, yyyy')}</div>
+                    <td className="p-4 md:p-6">
+                      <div className="text-xs md:text-sm text-white">{format(new Date(tx.date), 'MMM dd')}</div>
                       <div className="text-[10px] text-muted-foreground uppercase">{format(new Date(tx.date), 'hh:mm a')}</div>
                     </td>
-                    <td className="p-6">
-                      <div className="font-medium text-white">{tx.description}</div>
+                    <td className="p-4 md:p-6">
+                      <div className="font-medium text-xs md:text-sm text-white truncate max-w-[120px] md:max-w-none">{tx.description}</div>
                       <div className="text-[10px] text-muted-foreground flex items-center gap-2">
                         {tx.ledgerType.toUpperCase()} {tx.recipient && `• To: ${tx.recipient}`}
                       </div>
                     </td>
-                    <td className="p-6">
+                    <td className="p-4 md:p-6 hidden sm:table-cell">
                       <span className="text-[10px] px-2 py-1 bg-secondary rounded-full text-muted-foreground uppercase tracking-wider">{tx.category}</span>
                     </td>
-                    <td className="p-6">
+                    <td className="p-4 md:p-6 hidden md:table-cell">
                       <div className="text-sm text-white capitalize">{tx.method}</div>
                       {tx.appName && <div className="text-[10px] text-primary">{tx.appName}</div>}
                     </td>
-                    <td className="p-6 text-right">
-                      <span className={`font-headline font-bold text-lg ${tx.type === 'income' ? 'text-emerald-400' : 'text-white'}`}>
-                        {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    <td className="p-4 md:p-6 text-right">
+                      <span className={`font-headline font-bold text-sm md:text-lg ${tx.type === 'income' ? 'text-emerald-400' : 'text-white'}`}>
+                        {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN')}
                       </span>
                     </td>
                   </tr>
@@ -248,12 +247,12 @@ function SaldoContent() {
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
                 <p className="font-headline text-primary uppercase tracking-widest text-xs mb-1">Financial Overview</p>
-                <h2 className="text-3xl font-headline font-bold text-white">Your Wealth Summary</h2>
+                <h2 className="text-2xl md:text-3xl font-headline font-bold text-white">Your Wealth Summary</h2>
               </div>
               <div className="flex gap-2">
                 <div className="bg-secondary/50 px-4 py-2 rounded-xl border border-white/5 flex items-center gap-3">
                   <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                  <span className="text-xs font-headline uppercase text-muted-foreground tracking-wider">Real-time Live</span>
+                  <span className="text-xs font-headline uppercase text-muted-foreground tracking-wider">Live</span>
                 </div>
               </div>
             </header>
@@ -351,7 +350,19 @@ function SaldoContent() {
           </SidebarContent>
         </Sidebar>
 
-        <main className="flex-1 p-6 md:p-10 lg:px-16 space-y-10 max-w-7xl mx-auto">
+        <main className="flex-1 p-4 md:p-10 lg:px-16 space-y-6 md:space-y-10 max-w-7xl mx-auto w-full">
+          <div className="flex items-center justify-between md:hidden py-2">
+            <div className="flex items-center gap-2">
+              <SidebarTrigger />
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-6 bg-primary rounded flex items-center justify-center">
+                  <ShieldCheck className="text-primary-foreground h-4 w-4" />
+                </div>
+                <h1 className="font-headline text-lg font-bold text-white">Saldo</h1>
+              </div>
+            </div>
+          </div>
+          
           <ReminderAlert />
           {renderView()}
           <TransactionModal />

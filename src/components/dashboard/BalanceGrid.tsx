@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useFinance } from "@/lib/store";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Landmark, Wallet, CreditCard, ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 export function BalanceGrid() {
@@ -12,34 +12,34 @@ export function BalanceGrid() {
   
   const getIcon = (type: string) => {
     switch (type) {
-      case 'bank': return <Landmark className="h-4 w-4" />;
-      case 'card': return <CreditCard className="h-4 w-4" />;
-      case 'cash': return <Wallet className="h-4 w-4" />;
-      default: return <Wallet className="h-4 w-4" />;
+      case 'bank': return <Landmark className="h-5 w-5" />;
+      case 'card': return <CreditCard className="h-5 w-5" />;
+      case 'cash': return <Wallet className="h-5 w-5" />;
+      default: return <Wallet className="h-5 w-5" />;
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="bg-primary/10 p-8 rounded-[2rem] border border-primary/20 backdrop-blur-xl relative overflow-hidden group transition-all duration-500 hover:shadow-[0_0_50px_-12px_rgba(158,158,255,0.3)]">
+      <div className="bg-primary/10 p-6 md:p-8 rounded-[2rem] border border-primary/20 backdrop-blur-xl relative overflow-hidden group transition-all duration-500 hover:shadow-[0_0_50px_-12px_rgba(158,158,255,0.3)]">
         <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 transition-transform group-hover:scale-110">
-          <Wallet className="h-32 w-32 text-primary" />
+          <Wallet className="h-24 w-24 md:h-32 md:w-32 text-primary" />
         </div>
         <div className="relative">
           <h2 className="text-[10px] font-headline uppercase tracking-[0.2em] text-primary mb-2">Total Combined Wealth</h2>
           <div className="flex items-baseline gap-2">
-            <span className="text-5xl md:text-6xl font-headline font-bold text-white tracking-tight">
+            <span className="text-4xl md:text-6xl font-headline font-bold text-white tracking-tight">
               ₹{totalBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="mt-6 flex gap-6">
+          <div className="mt-6 flex flex-wrap gap-4 md:gap-8">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
                 <ArrowUpRight className="h-4 w-4 text-emerald-400" />
               </div>
               <div>
                 <p className="text-[10px] font-headline uppercase text-muted-foreground">Monthly In</p>
-                <p className="font-headline font-semibold text-emerald-400">+₹{transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0).toLocaleString('en-IN')}</p>
+                <p className="text-xs md:text-sm font-headline font-semibold text-emerald-400">+₹{transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0).toLocaleString('en-IN')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -48,7 +48,7 @@ export function BalanceGrid() {
               </div>
               <div>
                 <p className="text-[10px] font-headline uppercase text-muted-foreground">Monthly Out</p>
-                <p className="font-headline font-semibold text-rose-400">-₹{transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0).toLocaleString('en-IN')}</p>
+                <p className="text-xs md:text-sm font-headline font-semibold text-rose-400">-₹{transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0).toLocaleString('en-IN')}</p>
               </div>
             </div>
           </div>
@@ -57,19 +57,17 @@ export function BalanceGrid() {
 
       <div className="cozy-grid">
         {accounts.map((acc) => (
-          <Card key={acc.id} className="glass-card border-white/5 hover:border-primary/20 transition-all duration-300 group">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div className="p-2 rounded-lg bg-secondary/50 text-primary group-hover:scale-110 transition-transform">
-                {getIcon(acc.type)}
+          <Card key={acc.id} className="glass-card border-white/5 hover:border-primary/20 transition-all duration-300 group flex flex-col items-center justify-center aspect-square text-center p-4">
+            <div className="p-3 rounded-full bg-secondary/50 text-primary mb-3 group-hover:scale-110 group-hover:bg-primary/20 transition-all">
+              {getIcon(acc.type)}
+            </div>
+            <div className="space-y-1">
+              <div className="text-[10px] font-headline uppercase text-muted-foreground tracking-widest">{acc.type}</div>
+              <div className="text-xs font-medium text-white truncate max-w-[120px]">{acc.name}</div>
+              <div className="text-sm md:text-base font-headline font-bold text-primary">
+                ₹{acc.balance.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </div>
-              <span className="text-[10px] font-headline uppercase text-muted-foreground tracking-widest">{acc.type}</span>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm font-medium text-muted-foreground mb-1">{acc.name}</div>
-              <div className="text-2xl font-headline font-semibold text-white">
-                ₹{acc.balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-            </CardContent>
+            </div>
           </Card>
         ))}
       </div>
