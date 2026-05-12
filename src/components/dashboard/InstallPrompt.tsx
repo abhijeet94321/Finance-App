@@ -1,9 +1,9 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { Download, X, Share, PlusSquare, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 export function InstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -11,7 +11,21 @@ export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
-    // 1. Check if already dismissed recently
+    // Check standalone mode first
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
+      || (window.navigator as any).standalone;
+    
+    if (isStandalone) return;
+
+    // Detect platform
+    const ua = window.navigator.userAgent.toLowerCase();
+    const isIOS = /iphone|ipad|ipod/.test(ua);
+    const isAndroid = /android/.test(ua);
+
+    if (isIOS) setPlatform("ios");
+    else if (isAndroid) setPlatform("android");
+
+    // Handle dismissal check
     const lastDismissed = localStorage.getItem("install-prompt-dismissed");
     if (lastDismissed) {
       const oneDay = 24 * 60 * 60 * 1000;
@@ -20,37 +34,19 @@ export function InstallPrompt() {
       }
     }
 
-    // 2. Detect platform
-    const ua = window.navigator.userAgent.toLowerCase();
-    const isIOS = /iphone|ipad|ipod/.test(ua);
-    const isAndroid = /android/.test(ua);
-
-    if (isIOS) setPlatform("ios");
-    else if (isAndroid) setPlatform("android");
-
-    // 3. Check if already installed (standalone mode)
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
-      || (window.navigator as any).standalone;
-
-    if (isStandalone) return;
-
-    // 4. Handle Android/Chrome "beforeinstallprompt"
+    // Android/Chrome beforeinstallprompt event
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setPlatform("android");
       setShowPrompt(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
-    // 5. For iOS, we show it after a short delay since there's no event
+    // iOS doesn't have an event, so show manually after a short delay
     if (isIOS) {
-      const timer = setTimeout(() => setShowPrompt(true), 5000);
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('beforeinstallprompt', handler);
-      };
+      const timer = setTimeout(() => setShowPrompt(true), 3000);
+      return () => clearTimeout(timer);
     }
 
     return () => window.removeEventListener('beforeinstallprompt', handler);
@@ -76,15 +72,15 @@ export function InstallPrompt() {
 
   return (
     <div className="fixed top-4 left-4 right-4 z-[200] animate-fade-in md:hidden">
-      <div className="glass-card bg-card/90 backdrop-blur-xl p-4 rounded-2xl shadow-2xl border border-primary/20 flex flex-col gap-3">
+      <div className="glass-card bg-card/95 backdrop-blur-2xl p-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-primary/20 flex flex-col gap-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="bg-primary/20 p-2 rounded-xl">
+            <div className="bg-primary/20 p-2.5 rounded-xl">
               <Smartphone className="text-primary h-5 w-5" />
             </div>
             <div>
               <p className="text-white font-headline font-bold text-sm">Install Saldo</p>
-              <p className="text-muted-foreground text-[10px]">Add to home screen for the best experience.</p>
+              <p className="text-muted-foreground text-[10px]">Access your ledger instantly from your home screen.</p>
             </div>
           </div>
           <button onClick={dismissPrompt} className="text-muted-foreground hover:text-white p-1">
@@ -95,20 +91,22 @@ export function InstallPrompt() {
         {platform === "android" && deferredPrompt ? (
           <Button 
             onClick={handleInstallClick}
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-headline font-bold rounded-xl h-10 text-xs"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-headline font-bold rounded-xl h-10 text-xs shadow-lg shadow-primary/20"
           >
             <Download className="h-4 w-4 mr-2" /> Install Now
           </Button>
         ) : platform === "ios" ? (
           <div className="bg-primary/5 rounded-xl p-3 border border-primary/10">
-            <p className="text-[10px] text-white/90 flex items-center flex-wrap gap-1 leading-relaxed">
-              Tap <Share className="h-3 w-3 text-primary" /> then <PlusSquare className="h-3 w-3 text-primary" /> <span className="font-bold">"Add to Home Screen"</span>
+            <p className="text-[11px] text-white/90 flex items-center flex-wrap gap-1.5 leading-relaxed justify-center">
+              Tap <Share className="h-3.5 w-3.5 text-primary" /> then scroll down and tap <PlusSquare className="h-3.5 w-3.5 text-primary" /> <span className="font-bold text-primary">"Add to Home Screen"</span>
             </p>
           </div>
         ) : (
-          <p className="text-[10px] text-muted-foreground italic text-center">
-            Open your browser menu and select "Install" or "Add to Home Screen"
-          </p>
+          <div className="text-center py-1">
+            <p className="text-[10px] text-muted-foreground italic">
+              Open your browser menu and select "Install" or "Add to Home Screen" to use Saldo as an app.
+            </p>
+          </div>
         )}
       </div>
     </div>
