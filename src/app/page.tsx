@@ -9,6 +9,7 @@ import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
 import { AISpendingAdvisor } from "@/components/dashboard/AISpendingAdvisor";
 import { TransactionModal } from "@/components/dashboard/TransactionModal";
 import { ReminderAlert } from "@/components/dashboard/ReminderAlert";
+import { ReportsView } from "@/components/dashboard/ReportsView";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import { LayoutDashboard, ReceiptText, BarChart3, Settings, ShieldCheck, LogOut, Search, Filter, Download, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -264,17 +265,18 @@ function SaldoContent() {
               </div>
               
               <aside className="lg:col-span-4 space-y-10">
-                <AISpendingAdvisor />
-                
-                <div className="glass-card rounded-[2rem] p-8 border-accent/20 bg-accent/5 overflow-hidden relative">
+                <div className="glass-card rounded-[2rem] p-8 border-primary/20 bg-primary/5 overflow-hidden relative">
                   <div className="absolute -bottom-4 -right-4 opacity-10">
-                     <BarChart3 className="h-24 w-24 text-accent" />
+                     <BarChart3 className="h-24 w-24 text-primary" />
                   </div>
-                  <h4 className="font-headline text-lg text-accent mb-2">Automated Monthly Audit</h4>
-                  <p className="text-sm text-muted-foreground mb-6 leading-relaxed">Generate a one-click comprehensive report for the current billing cycle.</p>
-                  <button className="w-full bg-accent py-3 rounded-xl font-headline font-bold text-white hover:bg-accent/90 transition-all shadow-lg shadow-accent/20">
-                    Generate Real-time Report
-                  </button>
+                  <h4 className="font-headline text-lg text-primary mb-2">View Insights</h4>
+                  <p className="text-sm text-muted-foreground mb-6 leading-relaxed">Head over to the Reports tab to see AI-powered analysis and graphical trends.</p>
+                  <Button 
+                    onClick={() => setCurrentView("reports")}
+                    className="w-full bg-primary py-3 rounded-xl font-headline font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                  >
+                    Go to Reports
+                  </Button>
                 </div>
               </aside>
             </section>
@@ -282,6 +284,8 @@ function SaldoContent() {
         );
       case "transactions":
         return <TransactionsView />;
+      case "reports":
+        return <ReportsView />;
       default:
         return <div className="p-20 text-center text-muted-foreground">Module coming soon...</div>;
     }
