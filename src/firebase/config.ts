@@ -2,21 +2,22 @@
 /**
  * Firebase configuration for the Saldo project.
  * 
- * STEP-BY-STEP:
- * 1. In your Firebase Console (studio-8485961398), click the Gear Icon -> Project settings.
- * 2. Scroll down to 'Your apps'.
- * 3. Select your web app and choose the 'Config' radio button.
- * 4. Copy the 'apiKey' and replace the placeholder below.
+ * TO FIX THE 'auth/unauthorized-domain' ERROR:
+ * 1. Go to your Firebase Console: https://console.firebase.google.com/u/0/project/studio-8485961398-7d33e/authentication/settings
+ * 2. Click on 'Authorized domains' in the left menu of the settings page.
+ * 3. Click 'Add domain'.
+ * 4. Paste your current app URL (the one in your browser's address bar, e.g., '*.googleusercontent.com').
  * 
- * ALSO: 
- * - Enable 'Authentication' (Google provider) in the left sidebar.
- * - Enable 'Firestore Database' in the left sidebar.
+ * STEP-BY-STEP SETUP:
+ * 1. In your Firebase Console, click the Gear Icon -> Project settings.
+ * 2. Scroll down to 'Your apps'.
+ * 3. Copy the 'apiKey' and 'appId' from the 'Config' radio button and replace the placeholders below.
  */
 export const firebaseConfig = {
-  apiKey: "PASTE_YOUR_API_KEY_HERE",
-  authDomain: "studio-8485961398.firebaseapp.com",
-  projectId: "studio-8485961398",
-  storageBucket: "studio-8485961398.firebasestorage.app",
+  apiKey: "REPLACE_WITH_YOUR_REAL_API_KEY", // Get this from Firebase Console -> Project Settings
+  authDomain: "studio-8485961398-7d33e.firebaseapp.com",
+  projectId: "studio-8485961398-7d33e",
+  storageBucket: "studio-8485961398-7d33e.firebasestorage.app",
   messagingSenderId: "8485961398",
-  appId: "1:8485961398:web:abcdef123456" // Replace this with your actual appId from the console
+  appId: "REPLACE_WITH_YOUR_REAL_APP_ID" // Get this from Firebase Console -> Project Settings
 };
