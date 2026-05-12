@@ -11,6 +11,7 @@ import { TransactionModal } from "@/components/dashboard/TransactionModal";
 import { ReminderAlert } from "@/components/dashboard/ReminderAlert";
 import { ReportsView } from "@/components/dashboard/ReportsView";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { MobileNav } from "@/components/dashboard/MobileNav";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
 import { LayoutDashboard, ReceiptText, BarChart3, Settings, ShieldCheck, LogOut, Search, Filter, Download, ArrowUpDown, ArrowUp, ArrowDown, Trash2, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -59,7 +60,7 @@ function SettingsView() {
   };
 
   return (
-    <div className="space-y-10 animate-fade-in max-w-2xl">
+    <div className="space-y-10 animate-fade-in max-w-2xl pb-24 md:pb-0">
       <header>
         <p className="font-headline text-primary uppercase tracking-widest text-xs mb-1">Preferences & Privacy</p>
         <h2 className="text-3xl font-headline font-bold text-white">Security & Settings</h2>
@@ -74,7 +75,6 @@ function SettingsView() {
             <h3 className="font-headline text-xl text-white mb-2">Reset All Data</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               This action will permanently delete all your accounts, starting balances, and historical transactions. 
-              You will be returned to the onboarding screen to set up your baseline wealth again.
             </p>
           </div>
         </div>
@@ -89,7 +89,7 @@ function SettingsView() {
             <AlertDialogHeader>
               <AlertDialogTitle className="font-headline text-white text-xl">Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription className="text-muted-foreground">
-                This action cannot be undone. All your penny-perfect records will be lost forever.
+                This action cannot be undone. All records will be lost.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -110,11 +110,7 @@ function SettingsView() {
         <div className="grid gap-4">
           <div className="flex justify-between items-center py-3 border-b border-white/5">
             <span className="text-sm text-muted-foreground">Version</span>
-            <span className="text-sm font-headline text-white">0.1.0-beta</span>
-          </div>
-          <div className="flex justify-between items-center py-3 border-b border-white/5">
-            <span className="text-sm text-muted-foreground">Ledger Sync</span>
-            <span className="text-sm font-headline text-emerald-400">Encrypted & Secure</span>
+            <span className="text-sm font-headline text-white">1.0.0-mobile</span>
           </div>
         </div>
       </div>
@@ -141,8 +137,7 @@ function TransactionsView() {
 
   const filteredTransactions = transactions.filter(t => {
     const matchesSearch = t.description.toLowerCase().includes(search.toLowerCase()) ||
-                         t.category.toLowerCase().includes(search.toLowerCase()) ||
-                         (t.recipient && t.recipient.toLowerCase().includes(search.toLowerCase()));
+                         t.category.toLowerCase().includes(search.toLowerCase());
     
     const matchesType = typeFilter === "all" || t.type === typeFilter;
     const matchesLedger = ledgerFilter === "all" || t.ledgerType === ledgerFilter;
@@ -169,91 +164,51 @@ function TransactionsView() {
       : String(bValue).localeCompare(String(aValue));
   });
 
-  const exportToCSV = () => {
-    const headers = ["Date", "Description", "Category", "Method", "Type", "Ledger", "Recipient", "Amount"];
-    const rows = filteredTransactions.map(t => [
-      format(new Date(t.date), 'yyyy-MM-dd HH:mm'),
-      t.description,
-      t.category,
-      t.method,
-      t.type,
-      t.ledgerType,
-      t.recipient || "",
-      t.amount
-    ]);
-
-    const csvContent = [
-      headers.join(","),
-      ...rows.map(row => row.join(","))
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `saldo_transactions_${format(new Date(), 'yyyyMMdd')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const SortIcon = ({ column }: { column: keyof Transaction }) => {
     if (sortConfig.key !== column) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-50" />;
     return sortConfig.direction === 'asc' ? <ArrowUp className="h-3 w-3 ml-1 text-primary" /> : <ArrowDown className="h-3 w-3 ml-1 text-primary" />;
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 animate-fade-in pb-24 md:pb-0">
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <p className="font-headline text-primary uppercase tracking-widest text-xs mb-1">Ledger Management</p>
-          <h2 className="text-2xl md:text-3xl font-headline font-bold text-white">All Transactions</h2>
+          <h2 className="text-2xl md:text-3xl font-headline font-bold text-white">Transactions</h2>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={exportToCSV}
-          className="bg-secondary/20 border-white/10 hover:bg-secondary/40 text-[10px] font-headline uppercase tracking-widest h-10 w-fit"
-        >
-          <Download className="h-4 w-4 mr-2" /> Export to CSV
-        </Button>
       </header>
 
-      <div className="flex flex-col lg:flex-row gap-4 items-center justify-between bg-secondary/20 p-4 rounded-2xl border border-white/5">
-        <div className="relative w-full lg:max-w-md">
+      <div className="flex flex-col gap-4 bg-secondary/20 p-4 rounded-2xl border border-white/5">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Search transactions..." 
+            placeholder="Search..." 
             className="pl-10 bg-background/50 border-white/10"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex flex-wrap gap-3 w-full lg:w-auto">
-          <div className="flex-1 lg:w-40">
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="bg-background/50 border-white/10">
-                <SelectValue placeholder="All Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="income">Income</SelectItem>
-                <SelectItem value="expense">Expense</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex-1 lg:w-40">
-            <Select value={ledgerFilter} onValueChange={setLedgerFilter}>
-              <SelectTrigger className="bg-background/50 border-white/10">
-                <SelectValue placeholder="All Ledgers" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Ledgers</SelectItem>
-                <SelectItem value="personal">Personal</SelectItem>
-                <SelectItem value="aashram">Aashram</SelectItem>
-                <SelectItem value="others">Others</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="flex gap-2">
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="bg-background/50 border-white/10 flex-1">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="income">In</SelectItem>
+              <SelectItem value="expense">Out</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={ledgerFilter} onValueChange={setLedgerFilter}>
+            <SelectTrigger className="bg-background/50 border-white/10 flex-1">
+              <SelectValue placeholder="Ledger" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="personal">Personal</SelectItem>
+              <SelectItem value="aashram">Aashram</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -262,71 +217,26 @@ function TransactionsView() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-white/5">
-                <th 
-                  className="p-4 md:p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-white transition-colors"
-                  onClick={() => handleSort('date')}
-                >
-                  <div className="flex items-center">Date <SortIcon column="date" /></div>
-                </th>
-                <th 
-                  className="p-4 md:p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground cursor-pointer hover:text-white transition-colors"
-                  onClick={() => handleSort('description')}
-                >
-                  <div className="flex items-center">Description <SortIcon column="description" /></div>
-                </th>
-                <th 
-                  className="p-4 md:p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground hidden sm:table-cell cursor-pointer hover:text-white transition-colors"
-                  onClick={() => handleSort('category')}
-                >
-                  <div className="flex items-center">Category <SortIcon column="category" /></div>
-                </th>
-                <th 
-                  className="p-4 md:p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground hidden md:table-cell cursor-pointer hover:text-white transition-colors"
-                  onClick={() => handleSort('method')}
-                >
-                  <div className="flex items-center">Method <SortIcon column="method" /></div>
-                </th>
-                <th 
-                  className="p-4 md:p-6 text-[10px] font-headline uppercase tracking-widest text-muted-foreground text-right cursor-pointer hover:text-white transition-colors"
-                  onClick={() => handleSort('amount')}
-                >
-                  <div className="flex items-center justify-end">Amount <SortIcon column="amount" /></div>
-                </th>
+                <th className="p-4 text-[10px] font-headline uppercase tracking-widest text-muted-foreground" onClick={() => handleSort('date')}>Date</th>
+                <th className="p-4 text-[10px] font-headline uppercase tracking-widest text-muted-foreground">Description</th>
+                <th className="p-4 text-[10px] font-headline uppercase tracking-widest text-muted-foreground text-right" onClick={() => handleSort('amount')}>Amount</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredTransactions.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-12 text-center text-muted-foreground italic">No transactions found matching your criteria.</td>
+              {filteredTransactions.map((tx) => (
+                <tr key={tx.id} className="hover:bg-white/5 transition-colors">
+                  <td className="p-4 text-xs text-white">{format(new Date(tx.date), 'MMM dd')}</td>
+                  <td className="p-4">
+                    <div className="font-medium text-xs text-white truncate max-w-[100px]">{tx.description}</div>
+                    <div className="text-[9px] text-muted-foreground uppercase">{tx.category}</div>
+                  </td>
+                  <td className="p-4 text-right">
+                    <span className={`font-headline font-bold text-xs ${tx.type === 'income' ? 'text-emerald-400' : 'text-white'}`}>
+                      {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN')}
+                    </span>
+                  </td>
                 </tr>
-              ) : (
-                filteredTransactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-white/5 transition-colors group">
-                    <td className="p-4 md:p-6">
-                      <div className="text-xs md:text-sm text-white">{format(new Date(tx.date), 'MMM dd')}</div>
-                      <div className="text-[10px] text-muted-foreground uppercase">{format(new Date(tx.date), 'hh:mm a')}</div>
-                    </td>
-                    <td className="p-4 md:p-6">
-                      <div className="font-medium text-xs md:text-sm text-white truncate max-w-[120px] md:max-w-none">{tx.description}</div>
-                      <div className="text-[10px] text-muted-foreground flex items-center gap-2">
-                        {tx.ledgerType.toUpperCase()} {tx.recipient && `• To: ${tx.recipient}`}
-                      </div>
-                    </td>
-                    <td className="p-4 md:p-6 hidden sm:table-cell">
-                      <span className="text-[10px] px-2 py-1 bg-secondary rounded-full text-muted-foreground uppercase tracking-wider">{tx.category}</span>
-                    </td>
-                    <td className="p-4 md:p-6 hidden md:table-cell">
-                      <div className="text-sm text-white capitalize">{tx.method}</div>
-                      {tx.appName && <div className="text-[10px] text-primary">{tx.appName}</div>}
-                    </td>
-                    <td className="p-4 md:p-6 text-right">
-                      <span className={`font-headline font-bold text-sm md:text-lg ${tx.type === 'income' ? 'text-emerald-400' : 'text-white'}`}>
-                        {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN')}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
         </div>
@@ -360,41 +270,21 @@ function SaldoContent() {
     switch (currentView) {
       case "dashboard":
         return (
-          <div className="space-y-10 animate-fade-in">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="space-y-10 animate-fade-in pb-24 md:pb-0">
+            <header className="flex items-center justify-between">
               <div>
                 <p className="font-headline text-primary uppercase tracking-widest text-xs mb-1">Financial Overview</p>
-                <h2 className="text-2xl md:text-3xl font-headline font-bold text-white">Your Wealth Summary</h2>
+                <h2 className="text-2xl font-headline font-bold text-white">Summary</h2>
               </div>
-              <div className="flex gap-2">
-                <div className="bg-secondary/50 px-4 py-2 rounded-xl border border-white/5 flex items-center gap-3">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                  <span className="text-xs font-headline uppercase text-muted-foreground tracking-wider">Live</span>
-                </div>
+              <div className="h-10 w-10 bg-primary/20 rounded-full flex items-center justify-center border border-primary/20">
+                <ShieldCheck className="h-5 w-5 text-primary" />
               </div>
             </header>
 
-            <section className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-              <div className="lg:col-span-8 space-y-10">
-                <BalanceGrid />
-                <RecentTransactions />
-              </div>
-              
-              <aside className="lg:col-span-4 space-y-10">
-                <div className="glass-card rounded-[2rem] p-8 border-primary/20 bg-primary/5 overflow-hidden relative">
-                  <div className="absolute -bottom-4 -right-4 opacity-10">
-                     <BarChart3 className="h-24 w-24 text-primary" />
-                  </div>
-                  <h4 className="font-headline text-lg text-primary mb-2">View Insights</h4>
-                  <p className="text-sm text-muted-foreground mb-6 leading-relaxed">Head over to the Reports tab to see AI-powered analysis and graphical trends.</p>
-                  <Button 
-                    onClick={() => setCurrentView("reports")}
-                    className="w-full bg-primary py-3 rounded-xl font-headline font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
-                  >
-                    Go to Reports
-                  </Button>
-                </div>
-              </aside>
+            <section className="space-y-10">
+              <BalanceGrid />
+              <RecentTransactions />
+              <AISpendingAdvisor />
             </section>
           </div>
         );
@@ -404,15 +294,14 @@ function SaldoContent() {
         return <ReportsView />;
       case "settings":
         return <SettingsView />;
-      default:
-        return <div className="p-20 text-center text-muted-foreground">Module coming soon...</div>;
     }
   };
 
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background text-foreground font-body">
-        <Sidebar className="border-r border-white/5 glass-card">
+        {/* Desktop Sidebar */}
+        <Sidebar className="hidden md:flex border-r border-white/5 glass-card">
           <SidebarHeader className="p-6">
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
@@ -424,43 +313,26 @@ function SaldoContent() {
           <SidebarContent className="px-3">
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton 
-                  isActive={currentView === "dashboard"} 
-                  onClick={() => setCurrentView("dashboard")}
-                  tooltip="Dashboard"
-                >
+                <SidebarMenuButton isActive={currentView === "dashboard"} onClick={() => setCurrentView("dashboard")}>
                   <LayoutDashboard /> <span>Dashboard</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton 
-                  isActive={currentView === "transactions"} 
-                  onClick={() => setCurrentView("transactions")}
-                  tooltip="Transactions"
-                >
+                <SidebarMenuButton isActive={currentView === "transactions"} onClick={() => setCurrentView("transactions")}>
                   <ReceiptText /> <span>Transactions</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton 
-                  isActive={currentView === "reports"}
-                  onClick={() => setCurrentView("reports")} 
-                  tooltip="Reports"
-                >
-                  <BarChart3 /> <span>Real-time Reports</span>
+                <SidebarMenuButton isActive={currentView === "reports"} onClick={() => setCurrentView("reports")}>
+                  <BarChart3 /> <span>Reports</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton 
-                  isActive={currentView === "settings"}
-                  onClick={() => setCurrentView("settings")}
-                  tooltip="Settings"
-                >
-                  <Settings /> <span>Security & Alerts</span>
+                <SidebarMenuButton isActive={currentView === "settings"} onClick={() => setCurrentView("settings")}>
+                  <Settings /> <span>Security</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
-            
             <div className="mt-auto p-3">
               <SidebarMenuButton onClick={handleLogout} className="text-destructive hover:bg-destructive/10">
                 <LogOut /> <span>Sign Out</span>
@@ -469,23 +341,14 @@ function SaldoContent() {
           </SidebarContent>
         </Sidebar>
 
-        <main className="flex-1 p-4 md:p-10 lg:px-16 space-y-6 md:space-y-10 max-w-7xl mx-auto w-full">
-          <div className="flex items-center justify-between md:hidden py-2">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger />
-              <div className="flex items-center gap-2">
-                <div className="h-6 w-6 bg-primary rounded flex items-center justify-center">
-                  <ShieldCheck className="text-primary-foreground h-4 w-4" />
-                </div>
-                <h1 className="font-headline text-lg font-bold text-white">Saldo</h1>
-              </div>
-            </div>
-          </div>
-          
+        <main className="flex-1 p-6 md:p-10 lg:px-16 space-y-6 md:space-y-10 max-w-7xl mx-auto w-full relative">
           <ReminderAlert />
           {renderView()}
           <TransactionModal />
         </main>
+
+        {/* Mobile Bottom Navigation */}
+        <MobileNav currentView={currentView} onViewChange={setCurrentView} />
       </div>
     </SidebarProvider>
   );
