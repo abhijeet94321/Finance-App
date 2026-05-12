@@ -53,7 +53,7 @@ export function Onboarding() {
                 <div className="flex-1 space-y-2">
                   <Label className="font-headline uppercase text-[10px] tracking-wider text-muted-foreground">Account Name</Label>
                   <Input 
-                    value={acc.name} 
+                    value={acc.name || ""} 
                     onChange={(e) => updateAccount(acc.id!, { name: e.target.value })}
                     placeholder="e.g. Chase Bank, Wallet..."
                     className="bg-background/50"
@@ -75,8 +75,11 @@ export function Onboarding() {
                   <Label className="font-headline uppercase text-[10px] tracking-wider text-muted-foreground">Balance</Label>
                   <Input 
                     type="number"
-                    value={acc.balance} 
-                    onChange={(e) => updateAccount(acc.id!, { balance: parseFloat(e.target.value) })}
+                    value={acc.balance === undefined || isNaN(acc.balance) ? "" : acc.balance} 
+                    onChange={(e) => {
+                      const val = e.target.value === "" ? NaN : parseFloat(e.target.value);
+                      updateAccount(acc.id!, { balance: val });
+                    }}
                     className="bg-background/50 font-headline"
                   />
                 </div>
