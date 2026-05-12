@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFinance, PaymentMethod, TransactionType, LedgerType } from "@/lib/store";
-import { Plus, CreditCard, Banknote, Globe, User, Landmark, HelpCircle, CalendarIcon } from "lucide-react";
+import { Plus, CreditCard, Banknote, Globe, User, Landmark, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const PAYMENT_APPS = [
@@ -35,6 +35,18 @@ export function TransactionModal() {
   const [appName, setAppName] = useState("");
   const [ledgerType, setLedgerType] = useState<LedgerType>("personal");
   const [recipient, setRecipient] = useState("");
+
+  // Sync method with account type
+  useEffect(() => {
+    const account = accounts.find(a => a.id === accountId);
+    if (account) {
+      if (account.type === 'cash') {
+        setMethod('cash');
+      } else {
+        setMethod('online');
+      }
+    }
+  }, [accountId, accounts]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,41 +155,20 @@ export function TransactionModal() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-headline uppercase text-muted-foreground">Account</Label>
+              <Label className="text-[10px] font-headline uppercase text-muted-foreground">Account (Autodetects Method)</Label>
               <select
                 className="w-full h-10 px-3 rounded-md bg-background/50 border border-input text-sm"
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
               >
                 {accounts.map(acc => (
-                  <option key={acc.id} value={acc.id}>{acc.name} (₹{acc.balance.toLocaleString('en-IN')})</option>
+                  <option key={acc.id} value={acc.id}>
+                    {acc.name} (₹{acc.balance.toLocaleString('en-IN')}) — {acc.type === 'cash' ? 'Cash' : 'Online'}
+                  </option>
                 ))}
               </select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-headline uppercase text-muted-foreground">Method</Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={method === "online" ? "secondary" : "ghost"}
-                  className="flex-1"
-                  onClick={() => setMethod("online")}
-                >
-                  <Globe className="h-4 w-4 mr-1" /> Online
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={method === "cash" ? "secondary" : "ghost"}
-                  className="flex-1"
-                  onClick={() => setMethod("cash")}
-                >
-                  <Banknote className="h-4 w-4 mr-1" /> Cash
-                </Button>
-              </div>
             </div>
           </div>
 
@@ -185,7 +176,7 @@ export function TransactionModal() {
             <>
               {method === 'online' && (
                 <div className="space-y-2 animate-fade-in">
-                  <Label className="text-[10px] font-headline uppercase text-muted-foreground">App Name</Label>
+                  <Label className="text-[10px] font-headline uppercase text-muted-foreground">Payment App</Label>
                   <select
                     className="w-full h-10 px-3 rounded-md bg-background/50 border border-input text-sm"
                     value={appName}
