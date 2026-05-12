@@ -1,20 +1,26 @@
 /**
  * Firebase configuration for the Saldo project.
  * 
- * TO FIX 'auth/unauthorized-domain':
- * 1. Go to your Firebase Console: https://console.firebase.google.com/project/studio-8485961398-7d33e/authentication/settings
- * 2. Click on the 'Authorized domains' tab.
- * 3. Click 'Add domain'.
- * 4. Paste your current preview domain: studio-8485961398-9002.googleusercontent.com
- * 5. Also ensure 'localhost' is in the list.
+ * TROUBLESHOOTING GUIDE:
  * 
- * TO FIX 'auth/api-key-not-valid':
- * 1. Go to Project Settings: https://console.firebase.google.com/project/studio-8485961398-7d33e/settings/general
- * 2. Scroll to 'Your apps', select your web app.
- * 3. Copy the 'apiKey' from the 'Config' radio button and replace the value below.
+ * 1. FIX 'auth/unauthorized-domain':
+ *    - Go to: https://console.firebase.google.com/project/studio-8485961398-7d33e/authentication/settings
+ *    - Click the 'Authorized domains' tab.
+ *    - Click 'Add domain' and add: studio-8485961398-9002.googleusercontent.com
+ *    - Also ensure 'localhost' is in the list.
+ * 
+ * 2. FIX 'auth/api-key-not-valid':
+ *    - Go to: https://console.firebase.google.com/project/studio-8485961398-7d33e/settings/general
+ *    - Scroll down to 'Your apps'.
+ *    - Select the 'Config' radio button.
+ *    - Copy the 'apiKey' and replace the value below if it differs.
+ * 
+ * 3. ENABLE GOOGLE SIGN-IN:
+ *    - Go to: https://console.firebase.google.com/project/studio-8485961398-7d33e/authentication/providers
+ *    - Click 'Add new provider' -> 'Google' and enable it.
  */
 export const firebaseConfig = {
-  apiKey: "AIzaSyAGNuEhHsUQmLAEK_Fe6Y8JB14fFGRArr0", // REPLACE THIS with your real key from Project Settings
+  apiKey: "AIzaSyAGNuEhHsUQmLAEK_Fe6Y8JB14fFGRArr0", 
   authDomain: "studio-8485961398-7d33e.firebaseapp.com",
   projectId: "studio-8485961398-7d33e",
   storageBucket: "studio-8485961398-7d33e.firebasestorage.app",
