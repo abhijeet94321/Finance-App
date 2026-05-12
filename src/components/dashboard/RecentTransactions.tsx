@@ -30,6 +30,10 @@ export function RecentTransactions() {
     }
   };
 
+  const sortedTransactions = [...transactions].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between px-2">
@@ -38,12 +42,12 @@ export function RecentTransactions() {
       </div>
       
       <div className="space-y-2">
-        {transactions.length === 0 ? (
+        {sortedTransactions.length === 0 ? (
           <div className="text-center py-12 bg-secondary/10 rounded-2xl border border-dashed border-white/5">
             <p className="text-sm text-muted-foreground">No transactions recorded yet.</p>
           </div>
         ) : (
-          transactions.slice(0, 10).map((tx) => (
+          sortedTransactions.slice(0, 10).map((tx) => (
             <div key={tx.id} className="flex items-center justify-between p-4 bg-secondary/20 rounded-2xl border border-white/5 hover:border-white/10 transition-all animate-fade-in group">
               <div className="flex items-center gap-4">
                 <div className={`p-3 rounded-xl ${tx.type === 'income' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFinance, PaymentMethod, TransactionType, LedgerType } from "@/lib/store";
-import { Plus, CreditCard, Banknote, Globe, User, Landmark, HelpCircle } from "lucide-react";
+import { Plus, CreditCard, Banknote, Globe, User, Landmark, HelpCircle, CalendarIcon } from "lucide-react";
 
 const PAYMENT_APPS = [
   "Google Pay",
@@ -28,6 +28,7 @@ export function TransactionModal() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("General");
   const [accountId, setAccountId] = useState(accounts[0]?.id || "");
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   
   // Conditional states
   const [appName, setAppName] = useState("");
@@ -38,8 +39,13 @@ export function TransactionModal() {
     e.preventDefault();
     if (!amount || !description || !accountId) return;
 
+    // Use the selected date. We append a current time component to preserve some relative ordering if logged on same day
+    const selectedDate = new Date(date);
+    const now = new Date();
+    selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+
     addTransaction({
-      date: new Date().toISOString(),
+      date: selectedDate.toISOString(),
       description,
       amount: parseFloat(amount),
       type,
@@ -62,6 +68,7 @@ export function TransactionModal() {
     setAppName("");
     setLedgerType("personal");
     setRecipient("");
+    setDate(new Date().toISOString().split('T')[0]);
   };
 
   return (
@@ -95,19 +102,31 @@ export function TransactionModal() {
             </Button>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-[10px] font-headline uppercase text-muted-foreground">Amount</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-headline">$</span>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-headline uppercase text-muted-foreground">Date</Label>
               <Input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                className="pl-8 text-2xl font-headline bg-background/50 h-14"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                type="date"
+                className="bg-background/50 h-10 font-headline"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-headline uppercase text-muted-foreground">Amount</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-headline">$</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="pl-8 font-headline bg-background/50 h-10"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  required
+                />
+              </div>
             </div>
           </div>
 
