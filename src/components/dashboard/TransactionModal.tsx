@@ -9,6 +9,16 @@ import { Label } from "@/components/ui/label";
 import { useFinance, PaymentMethod, TransactionType, LedgerType } from "@/lib/store";
 import { Plus, CreditCard, Banknote, Globe, User, Landmark, HelpCircle } from "lucide-react";
 
+const PAYMENT_APPS = [
+  "Google Pay",
+  "PhonePe",
+  "Kiwi",
+  "Cred",
+  "WhatsApp",
+  "Amazon Pay",
+  "Other"
+];
+
 export function TransactionModal() {
   const { accounts, addTransaction } = useFinance();
   const [open, setOpen] = useState(false);
@@ -143,13 +153,17 @@ export function TransactionModal() {
           {method === 'online' && (
             <div className="space-y-2 animate-fade-in">
               <Label className="text-[10px] font-headline uppercase text-muted-foreground">App Name</Label>
-              <Input
-                placeholder="e.g. Google Pay, PhonePe, Kiwi"
-                className="bg-background/50"
+              <select
+                className="w-full h-10 px-3 rounded-md bg-background/50 border border-input text-sm"
                 value={appName}
                 onChange={(e) => setAppName(e.target.value)}
                 required
-              />
+              >
+                <option value="" disabled>Select Payment App</option>
+                {PAYMENT_APPS.map(app => (
+                  <option key={app} value={app}>{app}</option>
+                ))}
+              </select>
             </div>
           )}
 
@@ -172,7 +186,7 @@ export function TransactionModal() {
                 className="text-[10px] uppercase font-headline h-10"
                 onClick={() => setLedgerType("aashram")}
               >
-                <Landmark className="h-3 w-3 mr-1" /> Aashram
+                < Landmark className="h-3 w-3 mr-1" /> Aashram
               </Button>
               <Button
                 type="button"
