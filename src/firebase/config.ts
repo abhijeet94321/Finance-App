@@ -1,4 +1,3 @@
-
 /**
  * Firebase configuration for the Saldo project.
  * 
@@ -19,5 +18,5 @@ export const firebaseConfig = {
   projectId: "studio-8485961398-7d33e",
   storageBucket: "studio-8485961398-7d33e.firebasestorage.app",
   messagingSenderId: "8485961398",
-  appId: "1:8485961398:web:7d33e" // This should also be updated from Project Settings
+  appId: "1:8485961398:web:7d33e"
 };
