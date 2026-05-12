@@ -29,7 +29,7 @@ export function TransactionModal() {
   const [category, setCategory] = useState("General");
   const [accountId, setAccountId] = useState(accounts[0]?.id || "");
   
-  // New conditional states
+  // Conditional states
   const [appName, setAppName] = useState("");
   const [ledgerType, setLedgerType] = useState<LedgerType>("personal");
   const [recipient, setRecipient] = useState("");
@@ -43,12 +43,12 @@ export function TransactionModal() {
       description,
       amount: parseFloat(amount),
       type,
-      category,
+      category: type === 'income' ? 'Salary' : category,
       method,
       accountId,
-      appName: method === 'online' ? appName : undefined,
-      ledgerType,
-      recipient: ledgerType === 'others' ? recipient : undefined,
+      appName: (type === 'expense' && method === 'online') ? appName : undefined,
+      ledgerType: type === 'expense' ? ledgerType : 'personal',
+      recipient: (type === 'expense' && ledgerType === 'others') ? recipient : undefined,
     });
 
     setOpen(false);
@@ -73,7 +73,7 @@ export function TransactionModal() {
       </DialogTrigger>
       <DialogContent className="glass-card border-primary/20 sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-headline text-2xl text-primary">Log Transaction</DialogTitle>
+          <DialogTitle className="font-headline text-2xl text-primary">Log {type === 'expense' ? 'Expense' : 'Income'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
           <div className="flex gap-2">
@@ -149,75 +149,90 @@ export function TransactionModal() {
             </div>
           </div>
 
-          {/* Conditional App Name field */}
-          {method === 'online' && (
-            <div className="space-y-2 animate-fade-in">
-              <Label className="text-[10px] font-headline uppercase text-muted-foreground">App Name</Label>
-              <select
-                className="w-full h-10 px-3 rounded-md bg-background/50 border border-input text-sm"
-                value={appName}
-                onChange={(e) => setAppName(e.target.value)}
-                required
-              >
-                <option value="" disabled>Select Payment App</option>
-                {PAYMENT_APPS.map(app => (
-                  <option key={app} value={app}>{app}</option>
-                ))}
-              </select>
-            </div>
-          )}
+          {type === "expense" && (
+            <>
+              {method === 'online' && (
+                <div className="space-y-2 animate-fade-in">
+                  <Label className="text-[10px] font-headline uppercase text-muted-foreground">App Name</Label>
+                  <select
+                    className="w-full h-10 px-3 rounded-md bg-background/50 border border-input text-sm"
+                    value={appName}
+                    onChange={(e) => setAppName(e.target.value)}
+                    required
+                  >
+                    <option value="" disabled>Select Payment App</option>
+                    {PAYMENT_APPS.map(app => (
+                      <option key={app} value={app}>{app}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
-          <div className="space-y-2">
-            <Label className="text-[10px] font-headline uppercase text-muted-foreground">Transaction Type</Label>
-            <div className="grid grid-cols-3 gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant={ledgerType === "personal" ? "secondary" : "ghost"}
-                className="text-[10px] uppercase font-headline h-10"
-                onClick={() => setLedgerType("personal")}
-              >
-                <User className="h-3 w-3 mr-1" /> Personal
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={ledgerType === "aashram" ? "secondary" : "ghost"}
-                className="text-[10px] uppercase font-headline h-10"
-                onClick={() => setLedgerType("aashram")}
-              >
-                < Landmark className="h-3 w-3 mr-1" /> Aashram
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={ledgerType === "others" ? "secondary" : "ghost"}
-                className="text-[10px] uppercase font-headline h-10"
-                onClick={() => setLedgerType("others")}
-              >
-                <HelpCircle className="h-3 w-3 mr-1" /> Others
-              </Button>
-            </div>
-          </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-headline uppercase text-muted-foreground">Transaction Type</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={ledgerType === "personal" ? "secondary" : "ghost"}
+                    className="text-[10px] uppercase font-headline h-10"
+                    onClick={() => setLedgerType("personal")}
+                  >
+                    <User className="h-3 w-3 mr-1" /> Personal
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={ledgerType === "aashram" ? "secondary" : "ghost"}
+                    className="text-[10px] uppercase font-headline h-10"
+                    onClick={() => setLedgerType("aashram")}
+                  >
+                    < Landmark className="h-3 w-3 mr-1" /> Aashram
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={ledgerType === "others" ? "secondary" : "ghost"}
+                    className="text-[10px] uppercase font-headline h-10"
+                    onClick={() => setLedgerType("others")}
+                  >
+                    <HelpCircle className="h-3 w-3 mr-1" /> Others
+                  </Button>
+                </div>
+              </div>
 
-          {/* Conditional Recipient field */}
-          {ledgerType === 'others' && (
-            <div className="space-y-2 animate-fade-in">
-              <Label className="text-[10px] font-headline uppercase text-muted-foreground">Recipient Name</Label>
-              <Input
-                placeholder="Who are you paying?"
-                className="bg-background/50"
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-                required
-              />
-            </div>
+              {ledgerType === 'others' && (
+                <div className="space-y-2 animate-fade-in">
+                  <Label className="text-[10px] font-headline uppercase text-muted-foreground">Recipient Name</Label>
+                  <Input
+                    placeholder="Who are you paying?"
+                    className="bg-background/50"
+                    value={recipient}
+                    onChange={(e) => setRecipient(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-headline uppercase text-muted-foreground">Category</Label>
+                <select
+                  className="w-full h-10 px-3 rounded-md bg-background/50 border border-input text-sm"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  {["Food", "Housing", "Transport", "Shopping", "Bills", "Salary", "Gift", "General"].map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+            </>
           )}
 
           <div className="space-y-2">
             <Label className="text-[10px] font-headline uppercase text-muted-foreground">Description</Label>
             <Input
-              placeholder="What was this for?"
+              placeholder={type === 'expense' ? "What was this for?" : "Source of income?"}
               className="bg-background/50"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -225,21 +240,8 @@ export function TransactionModal() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-[10px] font-headline uppercase text-muted-foreground">Category</Label>
-            <select
-              className="w-full h-10 px-3 rounded-md bg-background/50 border border-input text-sm"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              {["Food", "Housing", "Transport", "Shopping", "Bills", "Salary", "Gift", "General"].map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-          </div>
-
           <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-white font-headline h-12 text-lg">
-            Record Transaction
+            Record {type === 'expense' ? 'Expense' : 'Income'}
           </Button>
         </form>
       </DialogContent>
