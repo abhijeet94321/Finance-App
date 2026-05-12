@@ -39,13 +39,14 @@ export function InstallPrompt() {
       e.preventDefault();
       setDeferredPrompt(e);
       setShowPrompt(true);
+      console.log('Capture beforeinstallprompt event');
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
     // Show fallback prompt for iOS or if browser doesn't support the event but is mobile
     const timer = setTimeout(() => {
-      if (isIOS || isAndroid) {
+      if (isIOS) {
         setShowPrompt(true);
       }
     }, 5000);
@@ -60,6 +61,7 @@ export function InstallPrompt() {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to install prompt: ${outcome}`);
       if (outcome === 'accepted') {
         setDeferredPrompt(null);
         setShowPrompt(false);
@@ -101,14 +103,14 @@ export function InstallPrompt() {
           </Button>
         ) : platform === "ios" ? (
           <div className="bg-primary/5 rounded-xl p-3 border border-primary/10">
-            <p className="text-[11px] text-white/90 flex items-center flex-wrap gap-1.5 leading-relaxed justify-center">
+            <p className="text-[11px] text-white/90 flex items-center flex-wrap gap-1.5 leading-relaxed justify-center text-center">
               Tap <Share className="h-3.5 w-3.5 text-primary" /> then scroll down and tap <PlusSquare className="h-3.5 w-3.5 text-primary" /> <span className="font-bold text-primary">"Add to Home Screen"</span>
             </p>
           </div>
         ) : (
           <div className="bg-secondary/20 rounded-xl p-3 border border-white/5">
             <p className="text-[10px] text-muted-foreground text-center">
-              Open your browser menu and select <span className="text-white font-bold">"Install"</span> or <span className="text-white font-bold">"Add to Home Screen"</span> to use Saldo as an app.
+              To install, open your browser menu and select <span className="text-white font-bold">"Install App"</span> or <span className="text-white font-bold">"Add to Home Screen"</span>.
             </p>
           </div>
         )}
