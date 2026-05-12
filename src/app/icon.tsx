@@ -3,9 +3,11 @@ import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
 
+// Chrome PWA requires at least 192x192 and 512x512. 
+// We generate a 512x512 icon which the browser can scale down.
 export const size = {
-  width: 32,
-  height: 32,
+  width: 512,
+  height: 512,
 }
 export const contentType = 'image/png'
 
@@ -14,7 +16,7 @@ export default function Icon() {
     (
       <div
         style={{
-          fontSize: 24,
+          fontSize: 280,
           background: '#9e9eff',
           width: '100%',
           height: '100%',
@@ -22,8 +24,9 @@ export default function Icon() {
           alignItems: 'center',
           justifyContent: 'center',
           color: '#0a0a1a',
-          borderRadius: '8px',
+          borderRadius: '112px',
           fontWeight: 'bold',
+          fontFamily: 'sans-serif',
         }}
       >
         S
