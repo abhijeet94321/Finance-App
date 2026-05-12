@@ -1,0 +1,48 @@
+
+{
+  "entities": {
+    "Account": {
+      "title": "Account",
+      "description": "A financial account (bank, cash, card)",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["bank", "card", "cash"] },
+        "balance": { "type": "number" },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "type", "balance"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "An income or expense record",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["income", "expense"] },
+        "category": { "type": "string" },
+        "method": { "type": "string", "enum": ["online", "cash"] },
+        "accountId": { "type": "string" },
+        "appName": { "type": "string" },
+        "ledgerType": { "type": "string", "enum": ["personal", "aashram", "others"] },
+        "recipient": { "type": "string" }
+      },
+      "required": ["date", "description", "amount", "type", "category", "method", "accountId", "ledgerType"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com", "password"]
+  },
+  "firestore": {
+    "/users/{userId}/accounts/{accountId}": {
+      "schema": "Account",
+      "description": "User accounts"
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "User transactions"
+    }
+  }
+}

@@ -1,7 +1,8 @@
+
 "use client";
 
 import React, { useState } from "react";
-import { FinancialProvider, useFinance, Transaction } from "@/lib/store";
+import { useFinance, Transaction } from "@/lib/store";
 import { Onboarding } from "@/components/dashboard/Onboarding";
 import { BalanceGrid } from "@/components/dashboard/BalanceGrid";
 import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
@@ -9,12 +10,15 @@ import { AISpendingAdvisor } from "@/components/dashboard/AISpendingAdvisor";
 import { TransactionModal } from "@/components/dashboard/TransactionModal";
 import { ReminderAlert } from "@/components/dashboard/ReminderAlert";
 import { ReportsView } from "@/components/dashboard/ReportsView";
+import { AuthGuard } from "@/components/auth/AuthGuard";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
 import { LayoutDashboard, ReceiptText, BarChart3, Settings, ShieldCheck, LogOut, Search, Filter, Download, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
 
 type View = "dashboard" | "transactions" | "reports" | "settings";
 
@@ -232,8 +236,21 @@ function TransactionsView() {
 }
 
 function SaldoContent() {
-  const { onboarded, resetData } = useFinance();
+  const { onboarded, loading } = useFinance();
   const [currentView, setCurrentView] = useState<View>("dashboard");
+  const auth = useAuth();
+
+  const handleLogout = () => {
+    if (auth) signOut(auth);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!onboarded) {
     return <Onboarding />;
@@ -343,8 +360,8 @@ function SaldoContent() {
             </SidebarMenu>
             
             <div className="mt-auto p-3">
-              <SidebarMenuButton onClick={resetData} className="text-destructive hover:bg-destructive/10">
-                <LogOut /> <span>Clear All Records</span>
+              <SidebarMenuButton onClick={handleLogout} className="text-destructive hover:bg-destructive/10">
+                <LogOut /> <span>Sign Out</span>
               </SidebarMenuButton>
             </div>
           </SidebarContent>
@@ -374,8 +391,8 @@ function SaldoContent() {
 
 export default function Home() {
   return (
-    <FinancialProvider>
+    <AuthGuard>
       <SaldoContent />
-    </FinancialProvider>
+    </AuthGuard>
   );
 }

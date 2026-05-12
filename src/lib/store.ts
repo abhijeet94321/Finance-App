@@ -1,7 +1,25 @@
 
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useMemo } from "react";
+import { 
+  useUser, 
+  useFirestore, 
+  useCollection,
+  useMemoFirebase 
+} from "@/firebase";
+import { 
+  collection, 
+  doc, 
+  setDoc, 
+  writeBatch, 
+  query, 
+  orderBy,
+  increment,
+  updateDoc
+} from "firebase/firestore";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export type TransactionType = "income" | "expense";
 export type PaymentMethod = "online" | "cash";
@@ -29,13 +47,11 @@ export interface Account {
   lastUpdated: string;
 }
 
-interface FinancialData {
+interface FinancialContextType {
   accounts: Account[];
   transactions: Transaction[];
   onboarded: boolean;
-}
-
-interface FinancialContextType extends FinancialData {
+  loading: boolean;
   addTransaction: (tx: Omit<Transaction, "id">) => void;
   updateAccountBalance: (accountId: string, newBalance: number) => void;
   onboard: (initialAccounts: Account[]) => void;
@@ -44,90 +60,108 @@ interface FinancialContextType extends FinancialData {
 
 const FinancialContext = createContext<FinancialContextType | undefined>(undefined);
 
-const STORAGE_KEY = "saldo_financial_data_v1";
-
 export function FinancialProvider({ children }: { children: React.ReactNode }) {
-  const [data, setData] = useState<FinancialData>({
-    accounts: [],
-    transactions: [],
-    onboarded: false,
-  });
+  const { user } = useUser();
+  const firestore = useFirestore();
 
-  const [isLoaded, setIsLoaded] = useState(false);
+  const accountsQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return collection(firestore, 'users', user.uid, 'accounts');
+  }, [firestore, user]);
 
-  useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setData(JSON.parse(saved));
-    }
-    setIsLoaded(true);
-  }, []);
+  const { data: accounts, loading: accountsLoading } = useCollection<Account>(accountsQuery);
 
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
-  }, [data, isLoaded]);
+  const transactionsQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(
+      collection(firestore, 'users', user.uid, 'transactions'), 
+      orderBy('date', 'desc')
+    );
+  }, [firestore, user]);
 
-  const onboard = (initialAccounts: Account[]) => {
-    setData({
-      accounts: initialAccounts,
-      transactions: [],
-      onboarded: true,
+  const { data: transactions, loading: transactionsLoading } = useCollection<Transaction>(transactionsQuery);
+
+  const addTransaction = (tx: Omit<Transaction, "id">) => {
+    if (!firestore || !user) return;
+
+    const transactionId = Math.random().toString(36).substr(2, 9);
+    const txRef = doc(firestore, 'users', user.uid, 'transactions', transactionId);
+    const accRef = doc(firestore, 'users', user.uid, 'accounts', tx.accountId);
+
+    const balanceDiff = tx.type === "income" ? tx.amount : -tx.amount;
+
+    // Record transaction
+    setDoc(txRef, tx).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: txRef.path,
+        operation: 'create',
+        requestResourceData: tx
+      }));
+    });
+
+    // Update balance
+    updateDoc(accRef, {
+      balance: increment(balanceDiff),
+      lastUpdated: new Date().toISOString()
+    }).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: accRef.path,
+        operation: 'update',
+        requestResourceData: { balance: increment(balanceDiff) }
+      }));
     });
   };
 
-  const addTransaction = (tx: Omit<Transaction, "id">) => {
-    const newTx = { ...tx, id: Math.random().toString(36).substr(2, 9) };
-    
-    setData((prev) => {
-      const updatedAccounts = prev.accounts.map((acc) => {
-        if (acc.id === tx.accountId) {
-          const balanceDiff = tx.type === "income" ? tx.amount : -tx.amount;
-          return {
-            ...acc,
-            balance: acc.balance + balanceDiff,
-            lastUpdated: new Date().toISOString(),
-          };
-        }
-        return acc;
-      });
+  const onboard = (initialAccounts: Account[]) => {
+    if (!firestore || !user) return;
 
-      return {
-        ...prev,
-        accounts: updatedAccounts,
-        transactions: [newTx, ...prev.transactions],
-      };
+    const batch = writeBatch(firestore);
+    initialAccounts.forEach(acc => {
+      const accRef = doc(firestore, 'users', user.uid, 'accounts', acc.id);
+      batch.set(accRef, acc);
+    });
+
+    batch.commit().catch(async (e) => {
+      // General error handling for batch
+      console.error("Onboarding failed", e);
     });
   };
 
   const updateAccountBalance = (accountId: string, newBalance: number) => {
-    setData((prev) => ({
-      ...prev,
-      accounts: prev.accounts.map((acc) =>
-        acc.id === accountId ? { ...acc, balance: newBalance, lastUpdated: new Date().toISOString() } : acc
-      ),
-    }));
+    if (!firestore || !user) return;
+    const accRef = doc(firestore, 'users', user.uid, 'accounts', accountId);
+    updateDoc(accRef, { 
+      balance: newBalance, 
+      lastUpdated: new Date().toISOString() 
+    }).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: accRef.path,
+        operation: 'update',
+        requestResourceData: { balance: newBalance }
+      }));
+    });
   };
 
   const resetData = () => {
-    setData({ accounts: [], transactions: [], onboarded: false });
-    localStorage.removeItem(STORAGE_KEY);
+    // Note: Deleting collections in Firestore client side is complex.
+    // For MVP, we suggest manually clearing via Firebase Console or implementing a delete loop.
+    console.warn("Reset data requested. For safety, this action is restricted in production.");
   };
 
-  if (!isLoaded) return null;
+  const contextValue = useMemo(() => ({
+    accounts: accounts || [],
+    transactions: transactions || [],
+    onboarded: (accounts && accounts.length > 0) || false,
+    loading: accountsLoading || transactionsLoading,
+    addTransaction,
+    updateAccountBalance,
+    onboard,
+    resetData,
+  }), [accounts, transactions, accountsLoading, transactionsLoading]);
 
   return React.createElement(
     FinancialContext.Provider,
-    {
-      value: {
-        ...data,
-        addTransaction,
-        updateAccountBalance,
-        onboard,
-        resetData,
-      },
-    },
+    { value: contextValue },
     children
   );
 }
