@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useMemo } from "react";
@@ -122,8 +121,10 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     });
 
     batch.commit().catch(async (e) => {
-      // General error handling for batch
-      console.error("Onboarding failed", e);
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: `/users/${user.uid}/accounts`,
+        operation: 'write'
+      }));
     });
   };
 
@@ -143,8 +144,6 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   };
 
   const resetData = () => {
-    // Note: Deleting collections in Firestore client side is complex.
-    // For MVP, we suggest manually clearing via Firebase Console or implementing a delete loop.
     console.warn("Reset data requested. For safety, this action is restricted in production.");
   };
 
