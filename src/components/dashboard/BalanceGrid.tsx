@@ -7,10 +7,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Landmark, Wallet, CreditCard, ArrowUpRight, ArrowDownRight, Receipt } from "lucide-react";
 
 export function BalanceGrid() {
-  const { accounts, transactions } = useFinance();
+  const { accounts } = useFinance();
 
-  // Net wealth = Assets - Liabilities (Loans/Credit Card Debt)
-  const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+  // Net wealth = Assets (Cash/Bank) - Liabilities (Loans/Credit Card Debt)
+  const assets = accounts
+    .filter(a => a.type === 'bank' || a.type === 'cash')
+    .reduce((sum, a) => sum + a.balance, 0);
+
+  const liabilities = accounts
+    .filter(a => a.type === 'loan' || a.type === 'card')
+    .reduce((sum, a) => sum + a.balance, 0);
+
+  const netWealth = assets - liabilities;
   
   const getIcon = (type: AccountType) => {
     switch (type) {
@@ -22,9 +30,6 @@ export function BalanceGrid() {
     }
   };
 
-  const assets = accounts.filter(a => a.type !== 'loan' && a.type !== 'card').reduce((sum, a) => sum + a.balance, 0);
-  const liabilities = Math.abs(accounts.filter(a => (a.type === 'loan' || a.type === 'card') && a.balance < 0).reduce((sum, a) => sum + a.balance, 0));
-
   return (
     <div className="space-y-6">
       <div className="bg-primary/10 p-6 md:p-8 rounded-[2rem] border border-primary/20 backdrop-blur-xl relative overflow-hidden group transition-all duration-500 hover:shadow-[0_0_50px_-12px_rgba(158,158,255,0.3)]">
@@ -35,7 +40,7 @@ export function BalanceGrid() {
           <h2 className="text-[10px] font-headline uppercase tracking-[0.2em] text-primary mb-2">Net Combined Wealth</h2>
           <div className="flex items-baseline gap-2">
             <span className="text-4xl md:text-6xl font-headline font-bold text-white tracking-tight">
-              ₹{totalBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹{netWealth.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="mt-6 flex flex-wrap gap-4 md:gap-8">
@@ -72,7 +77,7 @@ export function BalanceGrid() {
             <div className="space-y-1">
               <div className="text-[10px] font-headline uppercase text-muted-foreground tracking-widest">{acc.type}</div>
               <div className="text-xs font-medium text-white truncate max-w-[120px]">{acc.name}</div>
-              <div className={`text-sm md:text-base font-headline font-bold ${acc.balance < 0 ? 'text-rose-400' : 'text-primary'}`}>
+              <div className={`text-sm md:text-base font-headline font-bold ${acc.type === 'loan' || acc.type === 'card' ? 'text-rose-400' : 'text-primary'}`}>
                 ₹{acc.balance.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </div>
             </div>

@@ -43,6 +43,12 @@ export function TransactionModal() {
   const [recipient, setRecipient] = useState("");
 
   useEffect(() => {
+    if (accounts.length > 0 && !accountId) {
+      setAccountId(accounts[0].id);
+    }
+  }, [accounts, accountId]);
+
+  useEffect(() => {
     const account = accounts.find(a => a.id === accountId);
     if (account) {
       if (account.type === 'cash') {
@@ -53,7 +59,6 @@ export function TransactionModal() {
     }
   }, [accountId, accounts]);
 
-  // Set default category when type changes
   useEffect(() => {
     setCategory(CATEGORIES[type][0]);
   }, [type]);
@@ -64,8 +69,7 @@ export function TransactionModal() {
     if (!numAmount || !description || !accountId) return;
 
     const account = accounts.find(a => a.id === accountId);
-    // Allow spending from loans (it just increases the debt)
-    if (type === 'expense' && account && account.type !== 'loan' && numAmount > account.balance) {
+    if (type === 'expense' && account && account.type !== 'loan' && account.type !== 'card' && numAmount > account.balance) {
       toast({
         variant: "destructive",
         title: "Insufficient Balance",
@@ -109,7 +113,7 @@ export function TransactionModal() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button 
-          className="fixed bottom-28 right-6 md:bottom-10 md:right-10 h-16 w-16 rounded-full shadow-[0_10px_40px_rgba(158,158,255,0.4)] bg-accent hover:bg-accent/90 transition-all active:scale-95 z-[90]"
+          className="fixed bottom-24 right-6 md:bottom-10 md:right-10 h-16 w-16 rounded-full shadow-[0_10px_40px_rgba(158,158,255,0.4)] bg-accent hover:bg-accent/90 transition-all active:scale-95 z-[90]"
           aria-label="Add Transaction"
         >
           <Plus className="h-8 w-8 text-white" />

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -5,7 +6,11 @@ import { useFinance } from "@/lib/store";
 import { Globe, Banknote, ShoppingBag, Utensils, Home, Car, DollarSign, Package, TrendingUp, User, Landmark, HelpCircle } from "lucide-react";
 import { format } from "date-fns";
 
-export function RecentTransactions() {
+interface RecentTransactionsProps {
+  onViewAll?: () => void;
+}
+
+export function RecentTransactions({ onViewAll }: RecentTransactionsProps) {
   const { transactions } = useFinance();
 
   const getCategoryIcon = (category: string) => {
@@ -16,6 +21,8 @@ export function RecentTransactions() {
       case 'shopping': return <ShoppingBag className="h-4 w-4" />;
       case 'bills': return <DollarSign className="h-4 w-4" />;
       case 'salary': return <TrendingUp className="h-4 w-4" />;
+      case 'loan repayment':
+      case 'emi': return <Landmark className="h-4 w-4" />;
       default: return <Package className="h-4 w-4" />;
     }
   };
@@ -37,7 +44,12 @@ export function RecentTransactions() {
     <div className="space-y-4">
       <div className="flex items-center justify-between px-2">
         <h3 className="font-headline text-lg text-primary">Recent Transactions</h3>
-        <button className="text-xs text-muted-foreground hover:text-primary transition-colors font-headline uppercase tracking-wider">View All</button>
+        <button 
+          onClick={onViewAll}
+          className="text-xs text-muted-foreground hover:text-primary transition-colors font-headline uppercase tracking-wider"
+        >
+          View All
+        </button>
       </div>
       
       <div className="space-y-2">

@@ -78,7 +78,7 @@ function SaldoContent() {
 
             <section className="space-y-10">
               <BalanceGrid />
-              <RecentTransactions />
+              <RecentTransactions onViewAll={() => setCurrentView("transactions")} />
               <AISpendingAdvisor />
             </section>
           </div>
@@ -116,7 +116,7 @@ function SaldoContent() {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton isActive={currentView === "accounts"} onClick={() => setCurrentView("accounts")}>
-                  <Wallet /> <span>Accounts</span>
+                  <Wallet /> <span>Vault</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
