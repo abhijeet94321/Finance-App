@@ -3,11 +3,11 @@
   "entities": {
     "Account": {
       "title": "Account",
-      "description": "A financial account (bank, cash, card)",
+      "description": "A financial account (bank, cash, card, or loan)",
       "type": "object",
       "properties": {
         "name": { "type": "string" },
-        "type": { "type": "string", "enum": ["bank", "card", "cash"] },
+        "type": { "type": "string", "enum": ["bank", "card", "cash", "loan"] },
         "balance": { "type": "number" },
         "lastUpdated": { "type": "string", "format": "date-time" }
       },

@@ -18,7 +18,8 @@ import {
   increment,
   updateDoc,
   getDocs,
-  limit
+  limit,
+  deleteDoc
 } from "firebase/firestore";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -26,6 +27,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 export type TransactionType = "income" | "expense";
 export type PaymentMethod = "online" | "cash";
 export type LedgerType = "personal" | "aashram" | "others";
+export type AccountType = "bank" | "card" | "cash" | "loan";
 
 export interface Transaction {
   id: string;
@@ -44,7 +46,7 @@ export interface Transaction {
 export interface Account {
   id: string;
   name: string;
-  type: "bank" | "card" | "cash";
+  type: AccountType;
   balance: number;
   lastUpdated: string;
 }
@@ -57,6 +59,8 @@ interface FinancialContextType {
   addTransaction: (tx: Omit<Transaction, "id">) => void;
   updateAccountBalance: (accountId: string, newBalance: number) => void;
   onboard: (initialAccounts: Account[]) => void;
+  addAccount: (account: Omit<Account, "id" | "lastUpdated">) => void;
+  deleteAccount: (accountId: string) => void;
   resetData: () => Promise<void>;
 }
 
@@ -73,13 +77,12 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
   const { data: accounts, loading: accountsLoading } = useCollection<Account>(accountsQuery);
 
-  // Optimize: Limit initial transactions to 50 for faster sync/performance
   const transactionsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(
       collection(firestore, 'users', user.uid, 'transactions'), 
       orderBy('date', 'desc'),
-      limit(50)
+      limit(100)
     );
   }, [firestore, user]);
 
@@ -94,7 +97,6 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
     const balanceDiff = tx.type === "income" ? tx.amount : -tx.amount;
 
-    // Record transaction
     setDoc(txRef, tx).catch(async (e) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: txRef.path,
@@ -103,7 +105,6 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
       }));
     });
 
-    // Update balance
     updateDoc(accRef, {
       balance: increment(balanceDiff),
       lastUpdated: new Date().toISOString()
@@ -112,6 +113,37 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
         path: accRef.path,
         operation: 'update',
         requestResourceData: { balance: increment(balanceDiff) }
+      }));
+    });
+  };
+
+  const addAccount = (accData: Omit<Account, "id" | "lastUpdated">) => {
+    if (!firestore || !user) return;
+    const accountId = Math.random().toString(36).substr(2, 9);
+    const accRef = doc(firestore, 'users', user.uid, 'accounts', accountId);
+    
+    const newAccount: Account = {
+      ...accData,
+      id: accountId,
+      lastUpdated: new Date().toISOString()
+    };
+
+    setDoc(accRef, newAccount).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: accRef.path,
+        operation: 'create',
+        requestResourceData: newAccount
+      }));
+    });
+  };
+
+  const deleteAccount = (accountId: string) => {
+    if (!firestore || !user) return;
+    const accRef = doc(firestore, 'users', user.uid, 'accounts', accountId);
+    deleteDoc(accRef).catch(async (e) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: accRef.path,
+        operation: 'delete'
       }));
     });
   };
@@ -166,22 +198,18 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // Performance Optimization: If we have accounts in cache, we're not "loading" 
-  // even if a network sync is happening in background.
-  const isSyncingButReady = useMemo(() => {
-    return (accounts && accounts.length > 0) && (accountsLoading || transactionsLoading);
-  }, [accounts, accountsLoading, transactionsLoading]);
-
   const contextValue = useMemo(() => ({
     accounts: accounts || [],
     transactions: transactions || [],
     onboarded: (accounts && accounts.length > 0) || false,
-    loading: isSyncingButReady ? false : (accountsLoading || transactionsLoading),
+    loading: accountsLoading || transactionsLoading,
     addTransaction,
     updateAccountBalance,
     onboard,
+    addAccount,
+    deleteAccount,
     resetData,
-  }), [accounts, transactions, accountsLoading, transactionsLoading, isSyncingButReady]);
+  }), [accounts, transactions, accountsLoading, transactionsLoading]);
 
   return React.createElement(
     FinancialContext.Provider,

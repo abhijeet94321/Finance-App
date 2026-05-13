@@ -12,11 +12,11 @@ import { TransactionModal } from "@/components/dashboard/TransactionModal";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { MobileNav } from "@/components/dashboard/MobileNav";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { LayoutDashboard, ReceiptText, BarChart3, Settings, ShieldCheck, LogOut } from "lucide-react";
+import { LayoutDashboard, ReceiptText, BarChart3, Settings, ShieldCheck, LogOut, Wallet } from "lucide-react";
 import { useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 
-// Performance Optimization: Dynamic Imports for heavy views
+// Performance Optimization: Dynamic Imports
 const TransactionsView = dynamic(() => import("@/components/dashboard/TransactionsView").then(mod => mod.TransactionsView), {
   loading: () => <div className="h-96 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
 });
@@ -29,7 +29,11 @@ const SettingsView = dynamic(() => import("@/components/dashboard/SettingsView")
   loading: () => <div className="h-96 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
 });
 
-type View = "dashboard" | "transactions" | "reports" | "settings";
+const AccountsView = dynamic(() => import("@/components/dashboard/AccountsView").then(mod => mod.AccountsView), {
+  loading: () => <div className="h-96 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+});
+
+type View = "dashboard" | "transactions" | "accounts" | "reports" | "settings";
 
 function SaldoContent() {
   const { onboarded, loading } = useFinance();
@@ -81,6 +85,8 @@ function SaldoContent() {
         );
       case "transactions":
         return <TransactionsView />;
+      case "accounts":
+        return <AccountsView />;
       case "reports":
         return <ReportsView />;
       case "settings":
@@ -109,8 +115,13 @@ function SaldoContent() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton isActive={currentView === "accounts"} onClick={() => setCurrentView("accounts")}>
+                  <Wallet /> <span>Accounts</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton isActive={currentView === "transactions"} onClick={() => setCurrentView("transactions")}>
-                  <ReceiptText /> <span>Transactions</span>
+                  <ReceiptText /> <span>Ledger</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
@@ -137,7 +148,6 @@ function SaldoContent() {
           <TransactionModal />
         </main>
 
-        {/* Mobile Bottom Navigation */}
         <MobileNav currentView={currentView} onViewChange={setCurrentView} />
       </div>
     </SidebarProvider>

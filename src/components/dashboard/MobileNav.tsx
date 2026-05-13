@@ -2,10 +2,10 @@
 "use client";
 
 import React from "react";
-import { LayoutDashboard, ReceiptText, BarChart3, Settings } from "lucide-react";
+import { LayoutDashboard, ReceiptText, BarChart3, Settings, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type View = "dashboard" | "transactions" | "reports" | "settings";
+type View = "dashboard" | "transactions" | "accounts" | "reports" | "settings";
 
 interface MobileNavProps {
   currentView: View;
@@ -15,6 +15,7 @@ interface MobileNavProps {
 export function MobileNav({ currentView, onViewChange }: MobileNavProps) {
   const items = [
     { id: "dashboard" as View, icon: LayoutDashboard, label: "Home" },
+    { id: "accounts" as View, icon: Wallet, label: "Vault" },
     { id: "transactions" as View, icon: ReceiptText, label: "Ledger" },
     { id: "reports" as View, icon: BarChart3, label: "Reports" },
     { id: "settings" as View, icon: Settings, label: "Security" },
